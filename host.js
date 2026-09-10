@@ -156,7 +156,8 @@
     html += imgOrPlaceholder(p.imgOutside, 'present-photo');
     html += imgOrPlaceholder(p.imgInside, 'present-photo');
     html += '</div>';
-    html += '<div>';
+    html += '<div class="present-info-row">';
+    html += '<div class="present-info-text">';
     html += '<div class="present-addr">'+esc(p.address)+'</div>';
     html += '<div class="chip-row" style="margin-top:8px;">';
     if (p.area) html += '<span class="chip">'+fmtInt(p.area)+' m²</span>';
@@ -164,9 +165,11 @@
     html += p.builtYear ? '<span class="chip">Byggd '+p.builtYear+'</span>' : '<span class="chip unknown">Byggår okänt</span>';
     if (p.type) html += '<span class="chip">'+esc(p.type)+'</span>';
     html += '</div>';
+    if (p.description) html += '<p class="present-desc" style="margin-top:10px;">'+esc(p.description)+'</p>';
     html += '</div>';
     html += '<div class="map-box">'+generateMapSvg(p)+'</div>';
-    if (p.description) html += '<p class="present-desc">'+esc(p.description)+'</p>';
+    html += '</div>';
+    html += '</div>';
     html += '</div>';
 
     html += '<div class="dots">';
