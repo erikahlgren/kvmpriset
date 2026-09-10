@@ -52,6 +52,7 @@
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
   }
   .icon-btn:hover{border-color:var(--accent);}
+  #btn-back[hidden]{display:none;}
   .icon-btn:focus-visible, button:focus-visible, input:focus-visible, a:focus-visible{
     outline:2px solid var(--accent); outline-offset:2px;
   }
@@ -67,12 +68,13 @@
   .view[hidden]{display:none;}
 
   /* ---- Home ---- */
-  .hero{display:flex; flex-direction:column; gap:6px;}
+  .hero{display:flex; flex-direction:column; gap:6px; text-align:center;}
   .eyebrow{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.10em; text-transform:uppercase; color:var(--muted);}
   .hero h1{font-size:clamp(1.9rem,7vw,2.6rem); font-weight:600; color:var(--ink);}
   .hero p{color:var(--ink-soft); font-size:1rem; max-width:52ch;}
   .hero ul{color:var(--ink-soft); font-size:1rem; max-width:52ch; margin:0; padding-left:1.2em; display:flex; flex-direction:column; gap:4px;}
-  .qr-card{display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; padding:22px;}
+  .qr-card{display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; padding:36px;}
+  .qr-card canvas{width:300px; height:300px;}
   .pin-settings-panel{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
   .pin-settings-panel[hidden]{display:none;}
   .qr-card canvas{border-radius:var(--radius-sm); max-width:100%; height:auto;}
@@ -220,7 +222,7 @@
     </div>
 
     <div class="card qr-card">
-      <canvas id="qr-canvas" width="220" height="220"></canvas>
+      <canvas id="qr-canvas" width="300" height="300"></canvas>
       <div class="qr-caption" id="qr-pin-caption">PIN: ----</div>
     </div>
   </section>

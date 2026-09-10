@@ -80,7 +80,7 @@
   function playLink(){ return location.href.split('#')[0].replace(/[^\/]*$/, '') + 'play.html'; }
   try {
     if (window.QRious) {
-      new QRious({ element: $('#qr-canvas'), value: playLink(), size: 220, level: 'M' });
+      new QRious({ element: $('#qr-canvas'), value: playLink(), size: 300, level: 'M' });
     }
   } catch(e){}
 
