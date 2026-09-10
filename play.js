@@ -106,7 +106,6 @@
     html += '<button class="btn ghost" id="change-name" style="font-size:.8rem;padding:6px 12px;">Byt namn</button>';
     html += '</div>';
     html += '<div id="reveal-banner-slot"></div>';
-    html += '<div id="sync-badge-slot"></div>';
     html += '<div id="question-slot"></div>';
     root.innerHTML = html;
     $('#change-name', root).addEventListener('click', function(){
@@ -221,34 +220,12 @@
     }
 
     if (typeof snap.data.present_index === 'number' && snap.data.present_index !== lastKnownHostIndex){
-      var wasFollowing = (lastKnownHostIndex === null) || (myIndex === lastKnownHostIndex);
       lastKnownHostIndex = snap.data.present_index;
-      if (wasFollowing){
-        saveCurrentValue();
-        myIndex = lastKnownHostIndex;
-        drawQuestion();
-        var badge = $('#sync-badge-slot');
-        if (badge) badge.innerHTML = '';
-      } else {
-        renderSyncBadge();
-      }
+      saveCurrentValue();
+      flushSave();
+      myIndex = lastKnownHostIndex;
+      drawQuestion();
     }
-  }
-
-  function renderSyncBadge(){
-    var slot = $('#sync-badge-slot');
-    if (!slot) return;
-    var hostProp = PROPERTIES[lastKnownHostIndex];
-    if (!hostProp) return;
-    slot.innerHTML =
-      '<div class="sync-badge">'+
-      '<span>Värden visar nu bostad '+(lastKnownHostIndex+1)+'</span>'+
-      '<button class="btn primary" id="jump-to-host" style="padding:6px 14px;font-size:.8rem;">Hoppa dit</button>'+
-      '</div>';
-    $('#jump-to-host', slot).addEventListener('click', function(){
-      slot.innerHTML = '';
-      goTo(lastKnownHostIndex);
-    });
   }
 
   async function renderResults(){
