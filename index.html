@@ -214,11 +214,10 @@
 <div id="app">
   <div class="topbar" id="topbar" hidden>
     <button class="icon-btn" id="btn-back" aria-label="Tillbaka">←</button>
-    <div class="tabs" id="host-tabs" hidden>
+    <div class="tabs" id="host-tabs">
       <button data-tab="present">Presentera</button>
       <button data-tab="reveal">Resultat</button>
     </div>
-    <div class="topbar-title" id="topbar-title"></div>
   </div>
 
   <section class="view" data-view="home" id="view-home">
@@ -252,17 +251,13 @@
       <div class="card qr-card">
         <canvas id="qr-canvas" width="220" height="220"></canvas>
         <div class="qr-caption">Skanna för att gissa kvadratmeterpriset</div>
-        <a href="#play" id="qr-fallback-link" class="qr-fallback-link">Eller öppna gissningssidan direkt →</a>
+        <a href="play.html" id="qr-fallback-link" class="qr-fallback-link">Eller öppna gissningssidan direkt →</a>
       </div>
     </div>
   </section>
 
   <section class="view" data-view="present" id="view-present" hidden>
     <div id="present-root"></div>
-  </section>
-
-  <section class="view" data-view="play" id="view-play" hidden>
-    <div id="play-root"></div>
   </section>
 
   <section class="view" data-view="reveal" id="view-reveal" hidden>
@@ -274,6 +269,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="properties.js"></script>
 <script src="supabase-config.js"></script>
-<script src="app.js"></script>
+<script src="common.js"></script>
+<script src="host.js"></script>
 </body>
 </html>
