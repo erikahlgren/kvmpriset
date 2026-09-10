@@ -35,7 +35,7 @@
     --shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 32px -16px rgba(0,0,0,.65);
   }
   *{box-sizing:border-box;}
-  html{color-scheme:light dark;}
+  html{color-scheme:light dark; height:100%;}
   body{
     margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body);
     padding-inline:16px; padding-block:12px 16px; -webkit-font-smoothing:antialiased; overflow-x:hidden;
@@ -44,6 +44,32 @@
   p{margin:0; line-height:1.5;}
   button{font-family:inherit;}
   #app{max-width:1100px; margin-inline:auto; display:flex; flex-direction:column; gap:14px;}
+
+  /* While presenting, the slide fills the window height instead of growing past it. */
+  body.present-mode{height:100vh; overflow:hidden; display:flex; flex-direction:column;}
+  body.present-mode #app{flex:1; min-height:0;}
+  body.present-mode .view[data-view="present"]{flex:1; min-height:0;}
+  body.present-mode #present-root{display:flex; flex-direction:column; min-height:0; flex:1;}
+  body.present-mode .present-wrap{flex:1; min-height:0;}
+  body.present-mode .present-card{flex:1; min-height:0;}
+  body.present-mode .present-info-text, body.present-mode .dots, body.present-mode .present-nav{flex-shrink:0;}
+  body.present-mode .present-gallery{flex:1; min-height:0; grid-template-rows:1fr 1fr;}
+  body.present-mode .present-tile{min-height:0;}
+  body.present-mode .present-tile .present-photo, body.present-mode .present-tile .map-box{
+    flex:1; min-height:0; aspect-ratio:auto; height:auto;
+  }
+  @media (max-width:640px){
+    body.present-mode .present-gallery{grid-template-rows:repeat(4,1fr);}
+  }
+  @media (max-height:480px){
+    body.present-mode{height:auto; overflow:auto;}
+    body.present-mode #app, body.present-mode .view[data-view="present"], body.present-mode #present-root,
+    body.present-mode .present-wrap, body.present-mode .present-card, body.present-mode .present-gallery{flex:none; min-height:0;}
+    body.present-mode .present-gallery{grid-template-rows:none;}
+    body.present-mode .present-tile .present-photo, body.present-mode .present-tile .map-box{
+      flex:none; aspect-ratio:4/3; height:auto;
+    }
+  }
 
   .topbar{display:flex; align-items:center; gap:10px;}
   .icon-btn{

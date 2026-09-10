@@ -60,6 +60,7 @@
   function setView(view, opts){
     opts = opts || {};
     state.view = view;
+    document.body.classList.toggle('present-mode', view === 'present');
     $all('.view').forEach(function(el){ el.hidden = el.dataset.view !== view; });
     $('#btn-back').hidden = (view === 'home');
     $all('#host-tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === view); });
