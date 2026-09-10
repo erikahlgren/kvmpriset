@@ -252,6 +252,54 @@
     drawReveal('#reveal-root', entries, answers);
   }
 
+  // ================= LOGIN GATE =================
+  // Host access is tied to a real Supabase Auth account (email+password), not
+  // an anonymous browser session — so it survives a cleared browser, a new
+  // device, or a different browser, unlike the old anonymous-session approach.
+  async function checkHostSession(){
+    await authReady;
+    var res = await sb.auth.getSession();
+    var session = res.data.session;
+    if (session && session.user && session.user.is_anonymous === false){
+      currentUid = session.user.id;
+      return true;
+    }
+    return false;
+  }
+
+  function renderLoginGate(){
+    var root = document.getElementById('app');
+    root.innerHTML =
+      '<div class="card" style="max-width:360px;margin:60px auto;display:flex;flex-direction:column;gap:14px;">'+
+      '<h2>Logga in som värd</h2>'+
+      '<div class="field"><label for="host-email">E-post</label><input id="host-email" type="email" autocomplete="username"></div>'+
+      '<div class="field"><label for="host-pw">Lösenord</label><input id="host-pw" type="password" autocomplete="current-password"></div>'+
+      '<button class="btn primary" id="host-login-btn">Logga in</button>'+
+      '<p id="host-login-err" style="color:var(--danger);font-size:.85rem;"></p>'+
+      '</div>';
+    function attempt(){
+      var email = document.getElementById('host-email').value.trim();
+      var pw = document.getElementById('host-pw').value;
+      document.getElementById('host-login-btn').disabled = true;
+      sb.auth.signInWithPassword({ email: email, password: pw }).then(function(res){
+        document.getElementById('host-login-btn').disabled = false;
+        if (res.error){
+          document.getElementById('host-login-err').textContent = 'Fel e-post eller lösenord.';
+          return;
+        }
+        location.reload();
+      });
+    }
+    document.getElementById('host-login-btn').addEventListener('click', attempt);
+    document.getElementById('host-pw').addEventListener('keydown', function(e){
+      if (e.key === 'Enter') attempt();
+    });
+  }
+
   // init
-  setView('home');
+  (async function init(){
+    var loggedIn = await checkHostSession();
+    if (!loggedIn){ renderLoginGate(); return; }
+    setView('home');
+  })();
 })();

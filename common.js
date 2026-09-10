@@ -13,6 +13,7 @@
       window.currentUid = existing.data.session.user.id;
       return window.currentUid;
     }
+    if (window.SKIP_ANON_AUTH) return null;
     var res = await window.sb.auth.signInAnonymously();
     if (res.error){ console.error('auth error', res.error); return null; }
     window.currentUid = res.data.user.id;
