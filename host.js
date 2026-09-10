@@ -152,11 +152,6 @@
     var p = presentList[state.presentIndex];
     var html = '<div class="present-wrap">';
     html += '<div class="present-card">';
-    html += '<div class="present-gallery">';
-    html += imgOrPlaceholder(p.imgOutside, 'present-photo');
-    html += imgOrPlaceholder(p.imgInside, 'present-photo');
-    html += '</div>';
-    html += '<div class="present-info-row">';
     html += '<div class="present-info-text">';
     html += '<div class="present-addr">'+esc(p.address)+'</div>';
     html += '<div class="chip-row" style="margin-top:8px;">';
@@ -167,8 +162,10 @@
     html += '</div>';
     if (p.description) html += '<p class="present-desc" style="margin-top:10px;">'+esc(p.description)+'</p>';
     html += '</div>';
+    html += '<div class="present-gallery">';
+    html += imgOrPlaceholder(p.imgOutside, 'present-photo');
+    html += imgOrPlaceholder(p.imgInside, 'present-photo');
     html += '<div class="map-box">'+generateMapSvg(p)+'</div>';
-    html += '</div>';
     html += '</div>';
     html += '</div>';
 
