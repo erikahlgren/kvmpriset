@@ -163,12 +163,10 @@
     html += '</div>';
     html += '</div>';
     html += '<div class="present-gallery">';
-    html += imgOrPlaceholder(p.imgOutside, 'present-photo');
-    html += imgOrPlaceholder(p.imgInside, 'present-photo');
-    html += '</div>';
-    html += '<div class="map-section">';
-    html += '<div class="map-label">📍 Läge</div>';
-    html += '<div class="map-box">'+generateMapSvg(p)+'</div>';
+    html += '<div class="present-tile">'+imgOrPlaceholder(p.imgOutside, 'present-photo')+'<div class="present-tile-label">Utsida</div></div>';
+    html += '<div class="present-tile">'+imgOrPlaceholder(p.imgInside, 'present-photo')+'<div class="present-tile-label">Insida</div></div>';
+    html += '<div class="present-tile">'+imgOrPlaceholder(p.imgLayout, 'present-photo contain')+'<div class="present-tile-label">Planlösning</div></div>';
+    html += '<div class="present-tile"><div class="map-box">'+generateMapSvg(p)+'</div><div class="present-tile-label">Läge</div></div>';
     html += '</div>';
     html += '</div>';
 
