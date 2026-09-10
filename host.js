@@ -5,6 +5,7 @@
   "use strict";
 
   var state = { view: 'home', presentIndex: 0 };
+  var joinedPollTimer = null;
 
   function districtOf(address){
     var parts = String(address||'').split(',');
@@ -64,6 +65,25 @@
     $all('#host-tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === view); });
     if (view === 'present') renderPresent();
     if (view === 'reveal') renderReveal();
+    if (joinedPollTimer){ clearInterval(joinedPollTimer); joinedPollTimer = null; }
+    if (view === 'home'){
+      renderJoinedList();
+      joinedPollTimer = setInterval(renderJoinedList, 4000);
+    }
+  }
+
+  async function renderJoinedList(){
+    var el = $('#joined-list');
+    if (!el) return;
+    var res = await sb.from('guesses').select('name').order('submitted_at', { ascending: true });
+    var names = (res.data || []).map(function(r){ return r.name; });
+    if (!names.length){
+      el.innerHTML = '<p style="color:var(--muted);font-size:.85rem;">Ingen har gissat än.</p>';
+      return;
+    }
+    el.innerHTML =
+      '<div style="font-size:.8rem;font-weight:600;color:var(--ink-soft);margin-bottom:6px;">'+names.length+' har gissat</div>'+
+      '<div class="chip-row">' + names.map(function(n){ return '<span class="chip">'+esc(n)+'</span>'; }).join('') + '</div>';
   }
 
   $('#app').addEventListener('click', function(e){
