@@ -105,7 +105,6 @@
     html += '<div class="field" style="max-width:120px;"><input id="pin-input" maxlength="4" inputmode="numeric" placeholder="1234" value="'+esc(quizState.pin||'')+'"></div>';
     html += '<button class="btn ghost" id="pin-save">Spara PIN</button>';
     html += '</div>';
-    html += '<p style="font-size:.76rem;color:var(--muted);margin-top:10px;">Ditt ID (skicka till Claude en gång så låses värdåtkomsten till dig): <code>'+esc(currentUid||'—')+'</code></p>';
     root.innerHTML = html;
     $('#pin-save', root).addEventListener('click', async function(){
       var v = $('#pin-input', root).value.trim();
@@ -259,38 +258,39 @@
     var root = $('#reveal-root');
     var wrap = document.createElement('div');
     wrap.style.marginTop = '20px';
-    wrap.innerHTML =
-      '<button class="btn ghost" id="reset-step1" style="color:var(--danger);border-color:var(--danger);">Nollställ gissningar &amp; resultat</button>'+
-      '<div id="reset-step2" hidden style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'+
-        '<span style="font-size:.85rem;color:var(--danger);font-weight:600;">Radera alla gissningar och resultat permanent?</span>'+
-        '<button class="btn" id="reset-cancel">Avbryt</button>'+
-        '<button class="btn primary" id="reset-confirm" style="background:var(--danger);border-color:var(--danger);">Ja, radera allt</button>'+
-      '</div>';
+    wrap.style.textAlign = 'center';
     root.appendChild(wrap);
-    $('#reset-step1', wrap).addEventListener('click', function(){
-      $('#reset-step1', wrap).hidden = true;
-      $('#reset-step2', wrap).hidden = false;
-    });
-    $('#reset-cancel', wrap).addEventListener('click', function(){
-      $('#reset-step2', wrap).hidden = true;
-      $('#reset-step1', wrap).hidden = false;
-    });
-    $('#reset-confirm', wrap).addEventListener('click', async function(){
-      $('#reset-confirm', wrap).disabled = true;
-      try {
-        var r1 = await sb.from('guesses').delete().not('id','is',null);
-        if (r1.error) throw r1.error;
-        var r2 = await sb.from('leaderboard').delete().not('id','is',null);
-        if (r2.error) throw r2.error;
-        var r3 = await sb.from('meta').update({ revealed:false, revealed_at:null }).eq('id','state');
-        if (r3.error) throw r3.error;
-        toast('Gissningar och resultat nollställda.');
-        renderReveal();
-      } catch(err){
-        toast('Kunde inte nollställa. Är du inloggad som värd?');
-        $('#reset-confirm', wrap).disabled = false;
-      }
-    });
+
+    function drawInitial(){
+      wrap.innerHTML = '<button class="btn ghost" id="reset-step1" style="color:var(--danger);border-color:var(--danger);">Reset</button>';
+      $('#reset-step1', wrap).addEventListener('click', drawConfirm);
+    }
+    function drawConfirm(){
+      wrap.innerHTML =
+        '<div style="display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;">'+
+          '<span style="font-size:.85rem;color:var(--danger);font-weight:600;">Radera alla gissningar och resultat permanent?</span>'+
+          '<button class="btn" id="reset-cancel">Avbryt</button>'+
+          '<button class="btn primary" id="reset-confirm" style="background:var(--danger);border-color:var(--danger);">Ja, radera allt</button>'+
+        '</div>';
+      $('#reset-cancel', wrap).addEventListener('click', drawInitial);
+      $('#reset-confirm', wrap).addEventListener('click', async function(){
+        $('#reset-confirm', wrap).disabled = true;
+        try {
+          var r1 = await sb.from('guesses').delete().not('id','is',null);
+          if (r1.error) throw r1.error;
+          var r2 = await sb.from('leaderboard').delete().not('id','is',null);
+          if (r2.error) throw r2.error;
+          var r3 = await sb.from('meta').update({ revealed:false, revealed_at:null }).eq('id','state');
+          if (r3.error) throw r3.error;
+          toast('Gissningar och resultat nollställda.');
+          renderReveal();
+        } catch(err){
+          toast('Kunde inte nollställa. Är du inloggad som värd?');
+          $('#reset-confirm', wrap).disabled = false;
+        }
+      });
+    }
+    drawInitial();
   }
 
   // ================= LOGIN GATE =================
