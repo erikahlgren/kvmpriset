@@ -56,7 +56,6 @@
     $all('.view').forEach(function(el){ el.hidden = el.dataset.view !== view; });
     $('#btn-back').hidden = (view === 'home');
     $all('#host-tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === view); });
-    if (view === 'home') renderHostPanel();
     if (view === 'present') renderPresent();
     if (view === 'reveal') renderReveal();
   }
@@ -85,35 +84,36 @@
     }
   } catch(e){}
 
-  // ================= HOST PANEL (home screen) =================
-  async function renderHostPanel(){
-    var root = $('#host-panel');
-    root.innerHTML = '<p style="color:var(--muted);font-size:.85rem;">Laddar värdpanel…</p>';
+  // ================= PIN (caption under the QR code + settings popover) =================
+  async function refreshPinCaption(){
     await authReady;
     var quizState = await ensureStateDoc();
-    var html = '';
-    html += '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">';
-    html += '<div style="flex:1;min-width:180px;">';
-    html += '<div style="font-size:.8rem;font-weight:600;color:var(--ink-soft);">PIN-kod för gissningsformuläret</div>';
-    html += '<div class="pin-display">'+esc(quizState.pin||'----')+'</div>';
-    html += '</div>';
-    html += '<div class="field" style="max-width:120px;"><input id="pin-input" maxlength="4" inputmode="numeric" placeholder="1234" value="'+esc(quizState.pin||'')+'"></div>';
-    html += '<button class="btn ghost" id="pin-save">Spara PIN</button>';
-    html += '</div>';
-    root.innerHTML = html;
-    $('#pin-save', root).addEventListener('click', async function(){
-      var v = $('#pin-input', root).value.trim();
-      if (!/^\d{4}$/.test(v)){ toast('PIN-koden måste vara exakt 4 siffror.'); return; }
-      try {
-        var res = await sb.from('meta').update({ pin: v }).eq('id','state');
-        if (res.error) throw res.error;
-        toast('PIN-koden sparad!');
-        renderHostPanel();
-      } catch(err){
-        toast('Kunde inte spara PIN-koden. Har du klistrat in Firestore-reglerna med ditt ID?');
-      }
-    });
+    var el = $('#qr-pin-caption');
+    if (el) el.textContent = 'PIN: ' + (quizState.pin || '----');
+    return quizState;
   }
+
+  $('#btn-pin-settings').addEventListener('click', async function(){
+    var panel = $('#pin-settings-panel');
+    if (!panel.hidden){ panel.hidden = true; return; }
+    var quizState = await ensureStateDoc();
+    $('#pin-input').value = quizState.pin || '';
+    panel.hidden = false;
+    $('#pin-input').focus();
+  });
+  $('#pin-save').addEventListener('click', async function(){
+    var v = $('#pin-input').value.trim();
+    if (!/^\d{4}$/.test(v)){ toast('PIN-koden måste vara exakt 4 siffror.'); return; }
+    try {
+      var res = await sb.from('meta').update({ pin: v }).eq('id','state');
+      if (res.error) throw res.error;
+      toast('PIN-koden sparad!');
+      $('#pin-settings-panel').hidden = true;
+      refreshPinCaption();
+    } catch(err){
+      toast('Kunde inte spara PIN-koden. Är du inloggad som värd?');
+    }
+  });
 
   // ================= PRESENT =================
   var presentList = PROPERTIES;
@@ -337,5 +337,6 @@
     var loggedIn = await checkHostSession();
     if (!loggedIn){ renderLoginGate(); return; }
     setView('home');
+    refreshPinCaption();
   })();
 })();

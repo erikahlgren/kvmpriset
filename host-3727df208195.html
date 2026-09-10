@@ -72,21 +72,9 @@
   .hero h1{font-size:clamp(1.9rem,7vw,2.6rem); font-weight:600; color:var(--ink);}
   .hero p{color:var(--ink-soft); font-size:1rem; max-width:52ch;}
   .hero ul{color:var(--ink-soft); font-size:1rem; max-width:52ch; margin:0; padding-left:1.2em; display:flex; flex-direction:column; gap:4px;}
-  .home-section{display:flex; flex-direction:column; gap:20px;}
-  .home-section-label{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);}
-  .card-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:20px;}
-  .choice-card{
-    display:flex; flex-direction:column; gap:6px; text-align:left; align-items:flex-start;
-    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-    padding:16px; cursor:pointer; box-shadow:var(--shadow);
-  }
-  .choice-card:hover{border-color:var(--accent);}
-  .choice-card .icon{font-size:1.6rem;}
-  .choice-card .title{font-family:var(--font-display); font-weight:600; font-size:1.15rem;}
-  .choice-card .desc{color:var(--ink-soft); font-size:.88rem; line-height:1.4;}
-  .choice-card.primary{background:var(--accent); border-color:var(--accent);}
-  .choice-card.primary .title, .choice-card.primary .desc{color:var(--accent-ink);}
   .qr-card{display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; padding:22px;}
+  .pin-settings-panel{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+  .pin-settings-panel[hidden]{display:none;}
   .qr-card canvas{border-radius:var(--radius-sm); max-width:100%; height:auto;}
   .qr-caption{font-weight:600; font-size:.95rem;}
 
@@ -218,26 +206,22 @@
       <button data-tab="present">Presentera</button>
       <button data-tab="reveal">Resultat</button>
     </div>
+    <button class="icon-btn" id="btn-pin-settings" aria-label="Ändra PIN-kod">⚙️</button>
+  </div>
+  <div class="card pin-settings-panel" id="pin-settings-panel" hidden>
+    <div class="field" style="max-width:140px;"><label for="pin-input">PIN-kod</label><input id="pin-input" maxlength="4" inputmode="numeric" placeholder="1234"></div>
+    <button class="btn primary" id="pin-save">Spara</button>
   </div>
 
   <section class="view" data-view="home" id="view-home">
     <div class="hero">
       <div class="eyebrow">Fredagsquiz</div>
-      <h1>kr/m<sup>2</sup></h1>
-      <ul>
-        <li>Tio sålda bostäder.</li>
-        <li>Ingen ser priset.</li>
-        <li>Den som gissar kvadratmeterpriset närmast vinner &mdash; räknat som lägsta totala avvikelse över alla tio.</li>
-      </ul>
-    </div>
-
-    <div class="card" id="host-panel" style="display:flex;flex-direction:column;gap:12px;">
-      <p style="color:var(--muted);font-size:.85rem;">Laddar värdpanel…</p>
+      <h1>kr/m<sup>2</sup> ?</h1>
     </div>
 
     <div class="card qr-card">
       <canvas id="qr-canvas" width="220" height="220"></canvas>
-      <div class="qr-caption">Skanna för att delta</div>
+      <div class="qr-caption" id="qr-pin-caption">PIN: ----</div>
     </div>
   </section>
 
