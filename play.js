@@ -1,8 +1,13 @@
 (function(){
   "use strict";
 
-  var pollTimer = null;
+  var metaPollTimer = null;
+  var saveDebounce = null;
   var pinUnlockedThisLoad = false; // intentionally in-memory only: re-prompt on every fresh visit
+
+  var myGuesses = {};
+  var myIndex = 0;
+  var lastKnownHostIndex = null;
 
   async function render(){
     var root = $('#play-root');
@@ -61,104 +66,180 @@
     }
 
     // Already revealed? Skip straight to results.
-    var stateRes = await sb.from('meta').select('revealed').eq('id','state').maybeSingle();
+    var stateRes = await sb.from('meta').select('revealed, present_index').eq('id','state').maybeSingle();
     if (stateRes.data && stateRes.data.revealed){
       renderResults();
       return;
     }
 
-    var existing = {};
-    try {
-      var gres = await sb.from('guesses').select('guesses').eq('id', currentUid).maybeSingle();
-      if (gres.data) existing = gres.data.guesses || {};
-    } catch(e){}
+    var gres = await sb.from('guesses').select('guesses').eq('id', currentUid).maybeSingle();
+    myGuesses = (gres.data && gres.data.guesses) || {};
 
+    if (stateRes.data && typeof stateRes.data.present_index === 'number'){
+      lastKnownHostIndex = stateRes.data.present_index;
+      myIndex = lastKnownHostIndex;
+    }
+    if (myIndex < 0 || myIndex >= PROPERTIES.length) myIndex = 0;
+
+    renderQuestionShell(name);
+    drawQuestion();
+
+    if (metaPollTimer) clearInterval(metaPollTimer);
+    metaPollTimer = setInterval(pollMeta, 4000);
+  }
+
+  function renderQuestionShell(name){
+    var root = $('#play-root');
     var html = '';
     html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">';
     html += '<h2>Hej '+esc(name)+'!</h2>';
     html += '<button class="btn ghost" id="change-name" style="font-size:.8rem;padding:6px 12px;">Byt namn</button>';
     html += '</div>';
-    html += '<p style="color:var(--ink-soft)">Gissa priset per kvadratmeter för varje bostad. Du kan ändra dina svar tills kvizvärden avslöjar resultatet.</p>';
     html += '<div id="reveal-banner-slot"></div>';
-    html += '<div style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">';
-    PROPERTIES.forEach(function(p){
-      html += '<div class="card guess-row">';
-      html += imgOrPlaceholder(p.imgOutside, 'thumb', 'width:72px;height:54px;');
-      html += '<div class="guess-info">';
-      html += '<span class="addr">'+esc(p.address)+'</span>';
-      html += '<span class="chip" style="width:fit-content;">'+ (p.area?fmtInt(p.area)+' m²':'') +'</span>';
-      html += '</div>';
-      html += '<div class="guess-field"><input type="number" inputmode="numeric" min="0" step="100" id="guess-'+p.id+'" value="'+esc(existing[p.id]||'')+'"><span class="unit">kr/m²</span></div>';
-      html += '</div>';
-    });
-    html += '</div>';
-    html += '<div class="sticky-bar">';
-    html += '<span class="count" id="guess-count"></span>';
-    html += '<button class="btn primary" id="submit-guesses">Skicka in</button>';
-    html += '</div>';
+    html += '<div id="sync-badge-slot"></div>';
+    html += '<div id="question-slot"></div>';
     root.innerHTML = html;
-
     $('#change-name', root).addEventListener('click', function(){
       localStorage.removeItem('kvm_playerName');
+      if (metaPollTimer){ clearInterval(metaPollTimer); metaPollTimer = null; }
       render();
     });
+  }
 
-    function updateCount(){
-      var filled = PROPERTIES.filter(function(p){
-        var el = $('#guess-'+p.id, root);
-        return el && parseFloat(el.value) > 0;
-      }).length;
-      $('#guess-count', root).textContent = filled + '/' + PROPERTIES.length + ' ifyllda';
-      $('#submit-guesses', root).disabled = filled < PROPERTIES.length;
-    }
-    PROPERTIES.forEach(function(p){
-      $('#guess-'+p.id, root).addEventListener('input', updateCount);
+  function drawQuestion(){
+    var root = $('#question-slot');
+    if (!root) return;
+    var p = PROPERTIES[myIndex];
+    var filledCount = PROPERTY_IDS.filter(function(id){ return myGuesses[id] > 0; }).length;
+
+    var html = '';
+    html += '<div class="card" style="display:flex;flex-direction:column;gap:14px;">';
+    html += '<div style="display:flex;gap:14px;align-items:center;">';
+    html += imgOrPlaceholder(p.imgOutside, 'thumb', 'width:84px;height:63px;flex-shrink:0;');
+    html += '<div style="flex:1;min-width:0;">';
+    html += '<div style="font-weight:600;font-size:1.05rem;">'+esc(p.address)+'</div>';
+    html += '<div class="chip-row" style="margin-top:6px;">'+(p.area ? '<span class="chip">'+fmtInt(p.area)+' m²</span>' : '')+'</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '<div class="guess-field" style="justify-content:center;">';
+    html += '<input type="number" inputmode="numeric" min="0" step="100" id="guess-input" value="'+esc(myGuesses[p.id]||'')+'">';
+    html += '<span class="unit">kr/m²</span>';
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div class="dots" style="margin-top:14px;">';
+    PROPERTIES.forEach(function(_, i){
+      html += '<button class="dot '+(i===myIndex?'active':'')+'" data-dot="'+i+'" aria-label="Bostad '+(i+1)+'"></button>';
     });
-    updateCount();
+    html += '</div>';
 
-    $('#submit-guesses', root).addEventListener('click', async function(){
-      var guesses = {};
-      var ok = true;
-      PROPERTIES.forEach(function(p){
-        var v = parseFloat($('#guess-'+p.id, root).value);
-        if (!(v > 0)) ok = false;
-        guesses[p.id] = v;
+    html += '<div class="question-nav">';
+    html += '<button class="btn" id="q-prev" '+(myIndex===0?'disabled':'')+'>← Föregående</button>';
+    html += '<div class="question-progress">'+filledCount+'/'+PROPERTIES.length+' ifyllda</div>';
+    html += '<button class="btn" id="q-next" '+(myIndex===PROPERTIES.length-1?'disabled':'')+'>Nästa →</button>';
+    html += '</div>';
+
+    root.innerHTML = html;
+
+    var input = $('#guess-input', root);
+    input.focus();
+    input.addEventListener('input', function(){
+      scheduleSave();
+      $('.question-progress', root).textContent =
+        PROPERTY_IDS.filter(function(id){ return (id === p.id ? parseFloat(input.value) : myGuesses[id]) > 0; }).length +
+        '/' + PROPERTIES.length + ' ifyllda';
+    });
+    input.addEventListener('blur', function(){ saveCurrentValue(); flushSave(); });
+
+    $('#q-prev', root).addEventListener('click', function(){ goTo(myIndex - 1); });
+    $('#q-next', root).addEventListener('click', function(){ goTo(myIndex + 1); });
+    $all('[data-dot]', root).forEach(function(d){
+      d.addEventListener('click', function(){ goTo(parseInt(d.dataset.dot)); });
+    });
+  }
+
+  function saveCurrentValue(){
+    var input = $('#guess-input');
+    if (!input) return;
+    var v = parseFloat(input.value);
+    var p = PROPERTIES[myIndex];
+    if (v > 0) myGuesses[p.id] = v;
+    else delete myGuesses[p.id];
+  }
+
+  function goTo(i){
+    if (i < 0 || i >= PROPERTIES.length) return;
+    saveCurrentValue();
+    flushSave();
+    myIndex = i;
+    drawQuestion();
+  }
+
+  function scheduleSave(){
+    if (saveDebounce) clearTimeout(saveDebounce);
+    saveDebounce = setTimeout(function(){ saveCurrentValue(); flushSave(); }, 700);
+  }
+
+  async function flushSave(){
+    var name = localStorage.getItem('kvm_playerName') || '';
+    var complete = PROPERTY_IDS.every(function(id){ return myGuesses[id] > 0; });
+    try {
+      await sb.from('guesses').upsert({
+        id: currentUid,
+        name: name,
+        guesses: myGuesses,
+        submitted_at: complete ? new Date().toISOString() : null
       });
-      if (!ok){ toast('Fyll i alla tio innan du skickar in.'); return; }
-      try {
-        var res = await sb.from('guesses').upsert({
-          id: currentUid,
-          name: name,
-          guesses: guesses,
-          submitted_at: new Date().toISOString()
-        });
-        if (res.error) throw res.error;
-        toast('Inskickat! Lycka till 🎯');
-      } catch(err){
-        toast('Kunde inte skicka in svaret just nu, försök igen.');
-      }
-    });
+    } catch(e){}
+  }
 
-    if (pollTimer) clearInterval(pollTimer);
-    async function checkRevealed(){
-      var snap = await sb.from('meta').select('revealed').eq('id','state').maybeSingle();
-      var revealed = snap.data && snap.data.revealed;
-      var slot = $('#reveal-banner-slot', root);
-      if (!slot) return;
-      if (revealed){
-        slot.innerHTML = '<div class="banner"><span style="font-size:1.4rem;">🏆</span><span class="msg">Resultatet är klart!</span><button class="btn primary" id="go-reveal">Visa resultat</button></div>';
-        $('#go-reveal', slot).addEventListener('click', function(){
-          clearInterval(pollTimer); pollTimer = null;
+  async function pollMeta(){
+    var snap = await sb.from('meta').select('revealed, present_index').eq('id','state').maybeSingle();
+    if (!snap.data) return;
+
+    var bannerSlot = $('#reveal-banner-slot');
+    if (snap.data.revealed){
+      if (bannerSlot){
+        bannerSlot.innerHTML = '<div class="banner"><span style="font-size:1.4rem;">🏆</span><span class="msg">Resultatet är klart!</span><button class="btn primary" id="go-reveal">Visa resultat</button></div>';
+        $('#go-reveal', bannerSlot).addEventListener('click', function(){
+          if (metaPollTimer){ clearInterval(metaPollTimer); metaPollTimer = null; }
           renderResults();
         });
-        PROPERTIES.forEach(function(p){ var el = $('#guess-'+p.id, root); if (el) el.disabled = true; });
-        var bar = $('.sticky-bar', root); if (bar) bar.hidden = true;
+      }
+      var input = $('#guess-input');
+      if (input) input.disabled = true;
+      return;
+    }
+
+    if (typeof snap.data.present_index === 'number' && snap.data.present_index !== lastKnownHostIndex){
+      var wasFollowing = (lastKnownHostIndex === null) || (myIndex === lastKnownHostIndex);
+      lastKnownHostIndex = snap.data.present_index;
+      if (wasFollowing){
+        saveCurrentValue();
+        myIndex = lastKnownHostIndex;
+        drawQuestion();
+        var badge = $('#sync-badge-slot');
+        if (badge) badge.innerHTML = '';
       } else {
-        slot.innerHTML = '';
+        renderSyncBadge();
       }
     }
-    checkRevealed();
-    pollTimer = setInterval(checkRevealed, 4000);
+  }
+
+  function renderSyncBadge(){
+    var slot = $('#sync-badge-slot');
+    if (!slot) return;
+    var hostProp = PROPERTIES[lastKnownHostIndex];
+    if (!hostProp) return;
+    slot.innerHTML =
+      '<div class="sync-badge">'+
+      '<span>Värden visar nu bostad '+(lastKnownHostIndex+1)+'</span>'+
+      '<button class="btn primary" id="jump-to-host" style="padding:6px 14px;font-size:.8rem;">Hoppa dit</button>'+
+      '</div>';
+    $('#jump-to-host', slot).addEventListener('click', function(){
+      slot.innerHTML = '';
+      goTo(lastKnownHostIndex);
+    });
   }
 
   async function renderResults(){

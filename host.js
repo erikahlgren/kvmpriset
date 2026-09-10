@@ -150,6 +150,7 @@
   function drawPresent(){
     var root = $('#present-root');
     var p = presentList[state.presentIndex];
+    sb.from('meta').update({ present_index: state.presentIndex }).eq('id','state').then(function(){});
     var html = '<div class="present-wrap">';
     html += '<div class="present-card">';
     html += '<div class="present-info-text">';
@@ -304,6 +305,7 @@
           if (r3.error) throw r3.error;
           toast('Gissningar och resultat nollställda.');
           renderReveal();
+          renderJoinedList();
         } catch(err){
           toast('Kunde inte nollställa. Är du inloggad som värd?');
           $('#reset-confirm', wrap).disabled = false;
