@@ -8,6 +8,7 @@
   var myGuesses = {};
   var myIndex = 0;
   var lastKnownHostIndex = null;
+  var myName = ''; // intentionally in-memory only: never persisted client-side, re-entered every visit
 
   async function render(){
     var root = $('#play-root');
@@ -42,8 +43,7 @@
       }
     }
 
-    var name = localStorage.getItem('kvm_playerName') || '';
-    if (!name){
+    if (!myName){
       root.innerHTML =
         '<div class="card" style="display:flex;flex-direction:column;gap:14px;">'+
         '<h2>Vem gissar?</h2>'+
@@ -53,10 +53,19 @@
       $('#name-start', root).addEventListener('click', async function(){
         var v = $('#name-input', root).value.trim();
         if (!v){ toast('Skriv ditt namn först.'); return; }
-        localStorage.setItem('kvm_playerName', v);
-        // Register the name right away so the host's live list shows who's joined,
-        // even before guesses are filled in. Ignore duplicate-row errors (already registered).
-        try { await sb.from('guesses').insert({ id: currentUid, name: v, guesses: {} }); } catch(e){}
+        myName = v;
+        // Register/update the name right away so the host's live list shows who's
+        // joined, even before guesses are filled in. Preserve any existing guesses
+        // (e.g. if the DB row already exists from earlier in this same quiz) rather
+        // than wiping them just because the name is being re-entered.
+        try {
+          var existing = await sb.from('guesses').select('id').eq('id', currentUid).maybeSingle();
+          if (existing.data){
+            await sb.from('guesses').update({ name: v }).eq('id', currentUid);
+          } else {
+            await sb.from('guesses').insert({ id: currentUid, name: v, guesses: {} });
+          }
+        } catch(e){}
         render();
       });
       $('#name-input', root).addEventListener('keydown', function(e){
@@ -81,7 +90,7 @@
     }
     if (myIndex < 0 || myIndex >= PROPERTIES.length) myIndex = 0;
 
-    renderQuestionShell(name);
+    renderQuestionShell(myName);
     drawQuestion();
 
     if (metaPollTimer) clearInterval(metaPollTimer);
@@ -89,6 +98,7 @@
   }
 
   function renderQuestionShell(name){
+    // 'name' param here is just the display value already captured in myName
     var root = $('#play-root');
     var html = '';
     html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">';
@@ -100,7 +110,7 @@
     html += '<div id="question-slot"></div>';
     root.innerHTML = html;
     $('#change-name', root).addEventListener('click', function(){
-      localStorage.removeItem('kvm_playerName');
+      myName = '';
       if (metaPollTimer){ clearInterval(metaPollTimer); metaPollTimer = null; }
       render();
     });
@@ -181,12 +191,11 @@
   }
 
   async function flushSave(){
-    var name = localStorage.getItem('kvm_playerName') || '';
     var complete = PROPERTY_IDS.every(function(id){ return myGuesses[id] > 0; });
     try {
       await sb.from('guesses').upsert({
         id: currentUid,
-        name: name,
+        name: myName,
         guesses: myGuesses,
         submitted_at: complete ? new Date().toISOString() : null
       });
@@ -252,7 +261,7 @@
       root.innerHTML = '<div class="card"><p>Väntar på att quizvärden avslöjar resultatet…</p></div>';
       return;
     }
-    drawReveal('#play-root', entries, answers);
+    drawReveal('#play-root', entries, answers, myName);
   }
 
   render();

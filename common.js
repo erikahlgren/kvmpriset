@@ -69,7 +69,7 @@
     return initial;
   };
 
-  window.drawReveal = function(rootSel, entries, answers){
+  window.drawReveal = function(rootSel, entries, answers, myName){
     var root = $(rootSel);
     var medals = ['🥇','🥈','🥉'];
     var html = '';
@@ -85,7 +85,7 @@
 
     html += '<div class="table-wrap"><table><thead><tr><th>#</th><th>Namn</th><th class="num">Total avvikelse</th></tr></thead><tbody>';
     entries.forEach(function(e, i){
-      var isMe = e.name === (localStorage.getItem('kvm_playerName')||'');
+      var isMe = e.name === (myName||'');
       html += '<tr class="'+(isMe?'me':'')+'">';
       html += '<td><span class="rank-medal">'+(medals[i]||(i+1))+'</span></td>';
       html += '<td>'+esc(e.name)+(e.complete===false?' <span class="chip badge-warn">ofullständig</span>':'')+'</td>';
