@@ -44,10 +44,13 @@
         '<div class="field"><label for="name-input">Ditt namn</label><input id="name-input" placeholder="Förnamn"></div>'+
         '<button class="btn primary" id="name-start">Starta gissningen</button>'+
         '</div>';
-      $('#name-start', root).addEventListener('click', function(){
+      $('#name-start', root).addEventListener('click', async function(){
         var v = $('#name-input', root).value.trim();
         if (!v){ toast('Skriv ditt namn först.'); return; }
         localStorage.setItem('kvm_playerName', v);
+        // Register the name right away so the host's live list shows who's joined,
+        // even before guesses are filled in. Ignore duplicate-row errors (already registered).
+        try { await sb.from('guesses').insert({ id: currentUid, name: v, guesses: {} }); } catch(e){}
         render();
       });
       $('#name-input', root).addEventListener('keydown', function(e){

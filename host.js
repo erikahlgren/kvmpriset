@@ -75,7 +75,7 @@
   async function renderJoinedList(){
     var el = $('#joined-list');
     if (!el) return;
-    var res = await sb.from('guesses').select('name').order('submitted_at', { ascending: true });
+    var res = await sb.from('guesses').select('name').order('name', { ascending: true });
     var names = (res.data || []).map(function(r){ return r.name; });
     if (!names.length){
       el.innerHTML = '';
