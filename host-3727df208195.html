@@ -154,12 +154,19 @@
   .dot{width:9px; height:9px; border-radius:999px; background:var(--line); border:none; cursor:pointer; padding:0;}
   .dot.active{background:var(--accent); width:22px; border-radius:999px;}
   .present-nav{display:flex; align-items:center; gap:14px; width:100%; max-width:1100px; justify-content:space-between; flex-wrap:wrap;}
-  .present-gallery{display:grid; grid-template-columns:1fr 1fr; gap:16px; width:100%;}
-  .present-tile{display:flex; flex-direction:column; gap:6px; min-width:0;}
+  .present-gallery{display:grid; grid-template-columns:1fr 1fr; gap:16px; width:100%; position:relative;}
+  .present-tile{display:flex; flex-direction:column; gap:6px; min-width:0; cursor:pointer;}
   .present-tile-label{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); text-align:center;}
   .present-gallery .present-photo{aspect-ratio:4/3; min-width:0;}
   .present-gallery .map-box{aspect-ratio:4/3;}
   .present-photo.contain img{object-fit:contain;}
+  .present-tile.zoomed{
+    position:absolute; inset:0; z-index:5; background:var(--surface);
+    border-radius:var(--radius); padding:8px; box-shadow:var(--shadow);
+  }
+  .present-tile.zoomed .present-photo, .present-tile.zoomed .map-box{
+    flex:1; min-height:0; height:auto; aspect-ratio:auto;
+  }
   @media (max-width:640px){
     .present-gallery{grid-template-columns:1fr;}
   }

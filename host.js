@@ -190,6 +190,13 @@
     $all('[data-dot]', root).forEach(function(d){
       d.addEventListener('click', function(){ state.presentIndex = parseInt(d.dataset.dot); drawPresent(); });
     });
+    $all('.present-tile', root).forEach(function(tile){
+      tile.addEventListener('click', function(){
+        var wasZoomed = tile.classList.contains('zoomed');
+        $all('.present-tile', root).forEach(function(t){ t.classList.remove('zoomed'); });
+        if (!wasZoomed) tile.classList.add('zoomed');
+      });
+    });
   }
   function presentGo(delta){
     var next = state.presentIndex + delta;
