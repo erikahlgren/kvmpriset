@@ -2,6 +2,7 @@
   "use strict";
 
   var pollTimer = null;
+  var pinUnlockedThisLoad = false; // intentionally in-memory only: re-prompt on every fresh visit
 
   async function render(){
     var root = $('#play-root');
@@ -9,7 +10,7 @@
     await authReady;
     if (!currentUid){ root.innerHTML = '<p>Kunde inte ansluta. Ladda om sidan.</p>'; return; }
 
-    if (localStorage.getItem('kvm_pinOk') !== '1'){
+    if (!pinUnlockedThisLoad){
       var quizState = await ensureStateDoc();
       if (quizState.pin){
         root.innerHTML =
@@ -23,7 +24,7 @@
         $('#pin-unlock', root).addEventListener('click', function(){
           var v = $('#pin-entry', root).value.trim();
           if (v === quizState.pin){
-            localStorage.setItem('kvm_pinOk', '1');
+            pinUnlockedThisLoad = true;
             render();
           } else {
             toast('Fel PIN-kod, försök igen.');
