@@ -63,6 +63,7 @@
   }
   .tabs button.active{background:var(--accent); color:var(--accent-ink);}
 
+  .view{display:flex; flex-direction:column; gap:20px;}
   .view[hidden]{display:none;}
 
   /* ---- Home ---- */
@@ -244,12 +245,9 @@
       </div>
     </div>
 
-    <div class="home-section">
-      <div class="home-section-label">För dig som gissar</div>
-      <div class="card qr-card">
-        <canvas id="qr-canvas" width="220" height="220"></canvas>
-        <div class="qr-caption">Skanna för att gissa kvadratmeterpriset</div>
-      </div>
+    <div class="card qr-card">
+      <canvas id="qr-canvas" width="220" height="220"></canvas>
+      <div class="qr-caption">Skanna för att delta</div>
     </div>
   </section>
 
