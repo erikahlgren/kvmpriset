@@ -160,7 +160,6 @@
     html += p.builtYear ? '<span class="chip">Byggd '+p.builtYear+'</span>' : '<span class="chip unknown">Byggår okänt</span>';
     if (p.type) html += '<span class="chip">'+esc(p.type)+'</span>';
     html += '</div>';
-    if (p.description) html += '<p class="present-desc" style="margin-top:10px;">'+esc(p.description)+'</p>';
     html += '</div>';
     html += '<div class="present-gallery">';
     html += imgOrPlaceholder(p.imgOutside, 'present-photo');
