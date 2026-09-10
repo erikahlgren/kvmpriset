@@ -71,6 +71,7 @@
   .eyebrow{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.10em; text-transform:uppercase; color:var(--muted);}
   .hero h1{font-size:clamp(1.9rem,7vw,2.6rem); font-weight:600; color:var(--ink);}
   .hero p{color:var(--ink-soft); font-size:1rem; max-width:52ch;}
+  .hero ul{color:var(--ink-soft); font-size:1rem; max-width:52ch; margin:0; padding-left:1.2em; display:flex; flex-direction:column; gap:4px;}
   .home-section{display:flex; flex-direction:column; gap:20px;}
   .home-section-label{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);}
   .card-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px;}
@@ -223,7 +224,11 @@
     <div class="hero">
       <div class="eyebrow">Fredagsquiz</div>
       <h1>kr/m<sup>2</sup></h1>
-      <p>Tio sålda bostäder. Ingen ser priset. Den som gissar kvadratmeterpriset närmast vinner &mdash; räknat som lägsta totala avvikelse över alla tio.</p>
+      <ul>
+        <li>Tio sålda bostäder.</li>
+        <li>Ingen ser priset.</li>
+        <li>Den som gissar kvadratmeterpriset närmast vinner &mdash; räknat som lägsta totala avvikelse över alla tio.</li>
+      </ul>
     </div>
 
     <div class="home-section">
