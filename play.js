@@ -84,17 +84,25 @@
     var gres = await sb.from('guesses').select('guesses').eq('id', currentUid).maybeSingle();
     myGuesses = (gres.data && gres.data.guesses) || {};
 
-    if (stateRes.data && typeof stateRes.data.present_index === 'number'){
-      lastKnownHostIndex = stateRes.data.present_index;
-      myIndex = lastKnownHostIndex;
-    }
-    if (myIndex < 0 || myIndex >= PROPERTIES.length) myIndex = 0;
+    lastKnownHostIndex = (stateRes.data && typeof stateRes.data.present_index === 'number')
+      ? stateRes.data.present_index : null;
 
     renderQuestionShell(myName);
-    drawQuestion();
+    if (lastKnownHostIndex === null){
+      renderWaiting();
+    } else {
+      myIndex = lastKnownHostIndex;
+      drawQuestion();
+    }
 
     if (metaPollTimer) clearInterval(metaPollTimer);
     metaPollTimer = setInterval(pollMeta, 4000);
+  }
+
+  function renderWaiting(){
+    var slot = $('#question-slot');
+    if (!slot) return;
+    slot.innerHTML = '<div class="card" style="text-align:center;color:var(--ink-soft);">Väntar på att quizvärden visar en bostad…</div>';
   }
 
   function renderQuestionShell(name){
@@ -219,12 +227,17 @@
       return;
     }
 
-    if (typeof snap.data.present_index === 'number' && snap.data.present_index !== lastKnownHostIndex){
-      lastKnownHostIndex = snap.data.present_index;
+    var hostIndex = (typeof snap.data.present_index === 'number') ? snap.data.present_index : null;
+    if (hostIndex !== lastKnownHostIndex){
       saveCurrentValue();
       flushSave();
-      myIndex = lastKnownHostIndex;
-      drawQuestion();
+      lastKnownHostIndex = hostIndex;
+      if (hostIndex === null){
+        renderWaiting();
+      } else {
+        myIndex = hostIndex;
+        drawQuestion();
+      }
     }
   }
 

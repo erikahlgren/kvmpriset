@@ -70,6 +70,9 @@
     if (view === 'home'){
       renderJoinedList();
       joinedPollTimer = setInterval(renderJoinedList, 4000);
+      sb.from('meta').update({ present_index: null }).eq('id','state').then(function(res){
+        if (res.error) console.error('failed to clear present_index', res.error);
+      });
     }
   }
 
