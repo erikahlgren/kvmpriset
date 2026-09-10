@@ -1,25 +1,325 @@
+<title>Kvmpriset</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#EEF2EF; --surface:#FFFFFF; --surface-2:#F1F6F2;
+    --ink:#142621; --ink-soft:#46554E; --muted:#6C7D75; --line:#D7E0DA;
+    --accent:#1F5C46; --accent-ink:#FFFFFF; --accent-soft:#E4EFE8;
+    --gold:#9C6B1F; --gold-soft:#F6E9D2; --danger:#A73F2C; --danger-soft:#F7E3DD; --map-water:#BFD9E6;
+    --shadow:0 1px 2px rgba(20,38,33,.06), 0 8px 24px -12px rgba(20,38,33,.18);
+    --radius:16px; --radius-sm:9px;
+    --font-display:'Fraunces',Georgia,serif;
+    --font-body:'Work Sans',system-ui,-apple-system,sans-serif;
+    --font-mono:'IBM Plex Mono',ui-monospace,'SF Mono',monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1512; --surface:#16201C; --surface-2:#1B2620;
+      --ink:#E9F0EB; --ink-soft:#B7C4BD; --muted:#8CA098; --line:#2B3A33;
+      --accent:#57B491; --accent-ink:#06120D; --accent-soft:#1C3229;
+      --gold:#E3B15C; --gold-soft:#3A2E17; --danger:#E08067; --danger-soft:#3A231C; --map-water:#173441;
+      --shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 32px -16px rgba(0,0,0,.65);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1512; --surface:#16201C; --surface-2:#1B2620;
+    --ink:#E9F0EB; --ink-soft:#B7C4BD; --muted:#8CA098; --line:#2B3A33;
+    --accent:#57B491; --accent-ink:#06120D; --accent-soft:#1C3229;
+    --gold:#E3B15C; --gold-soft:#3A2E17; --danger:#E08067; --danger-soft:#3A231C;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 32px -16px rgba(0,0,0,.65);
+  }
+  *{box-sizing:border-box;}
+  html{color-scheme:light dark;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body);
+    padding-inline:16px; padding-block:20px 48px; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:var(--font-display); text-wrap:balance; margin:0;}
+  p{margin:0; line-height:1.5;}
+  button{font-family:inherit;}
+  #app{max-width:760px; margin-inline:auto; display:flex; flex-direction:column; gap:20px;}
+
+  .topbar{display:flex; align-items:center; gap:10px;}
+  .icon-btn{
+    width:38px; height:38px; border-radius:999px; border:1px solid var(--line);
+    background:var(--surface); color:var(--ink); font-size:18px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .icon-btn:hover{border-color:var(--accent);}
+  .icon-btn:focus-visible, button:focus-visible, input:focus-visible, a:focus-visible{
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+  .topbar-title{font-family:var(--font-display); font-weight:600; font-size:1.15rem;}
+  .tabs{display:flex; gap:6px; background:var(--surface-2); border:1px solid var(--line); border-radius:999px; padding:3px; margin-left:auto; overflow-x:auto;}
+  .tabs button{
+    border:none; background:transparent; color:var(--ink-soft); padding:7px 13px;
+    border-radius:999px; font-size:.85rem; font-weight:600; cursor:pointer; white-space:nowrap;
+  }
+  .tabs button.active{background:var(--accent); color:var(--accent-ink);}
+
+  .view[hidden]{display:none;}
+
+  /* ---- Home ---- */
+  .hero{display:flex; flex-direction:column; gap:6px; padding-block:8px 4px;}
+  .eyebrow{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.10em; text-transform:uppercase; color:var(--muted);}
+  .hero h1{font-size:clamp(1.9rem,7vw,2.6rem); font-weight:600; color:var(--ink);}
+  .hero p{color:var(--ink-soft); font-size:1rem; max-width:52ch;}
+  .home-section{display:flex; flex-direction:column; gap:10px;}
+  .home-section-label{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);}
+  .card-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px;}
+  .choice-card{
+    display:flex; flex-direction:column; gap:6px; text-align:left; align-items:flex-start;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px; cursor:pointer; box-shadow:var(--shadow);
+  }
+  .choice-card:hover{border-color:var(--accent);}
+  .choice-card .icon{font-size:1.6rem;}
+  .choice-card .title{font-family:var(--font-display); font-weight:600; font-size:1.15rem;}
+  .choice-card .desc{color:var(--ink-soft); font-size:.88rem; line-height:1.4;}
+  .choice-card.primary{background:var(--accent); border-color:var(--accent);}
+  .choice-card.primary .title, .choice-card.primary .desc{color:var(--accent-ink);}
+  .qr-card{display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; padding:22px;}
+  .qr-card canvas{border-radius:var(--radius-sm); max-width:100%; height:auto;}
+  .qr-caption{font-weight:600; font-size:.95rem;}
+  .qr-fallback-link{color:var(--accent); font-size:.82rem; text-decoration:none;}
+  .qr-fallback-link:hover{text-decoration:underline;}
+
+  /* ---- generic ---- */
+  .btn{
+    border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--ink);
+    padding:10px 18px; font-size:.92rem; font-weight:600; cursor:pointer;
+  }
+  .btn:hover{border-color:var(--accent);}
+  .btn.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+  .btn.primary:hover{opacity:.92;}
+  .btn.ghost{background:transparent;}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap;}
+
+  .field{display:flex; flex-direction:column; gap:5px;}
+  .field label{font-size:.8rem; font-weight:600; color:var(--ink-soft);}
+  .field input, .field textarea, .field select{
+    font-family:inherit; font-size:.95rem; padding:9px 11px; border-radius:var(--radius-sm);
+    border:1px solid var(--line); background:var(--surface-2); color:var(--ink); width:100%;
+  }
+  .field textarea{resize:vertical; min-height:64px;}
+  .field-row{display:flex; gap:12px; flex-wrap:wrap;}
+  .field-row .field{flex:1; min-width:140px;}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow);}
+  .chip{
+    display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:.76rem;
+    background:var(--surface-2); border:1px solid var(--line); color:var(--ink-soft);
+    padding:4px 9px; border-radius:999px; white-space:nowrap;
+  }
+  .chip-row{display:flex; gap:6px; flex-wrap:wrap;}
+  .badge-ok{background:var(--accent-soft); color:var(--accent); border-color:transparent;}
+  .badge-warn{background:var(--danger-soft); color:var(--danger); border-color:transparent;}
+  .progress-track{height:6px; background:var(--surface-2); border:1px solid var(--line); border-radius:999px; overflow:hidden;}
+  .progress-fill{height:100%; background:var(--accent); border-radius:999px; transition:width .25s ease;}
+  .placeholder-svg{width:100%; height:100%; stroke:var(--muted); stroke-width:2.2; fill:none; stroke-linejoin:round; stroke-linecap:round;}
+  .thumb{aspect-ratio:4/3; border-radius:var(--radius-sm); overflow:hidden; background:var(--surface-2); border:1px solid var(--line); flex-shrink:0;}
+  .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .thumb.pad{padding:14px;}
+  .toast{
+    position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:var(--ink); color:var(--bg);
+    padding:10px 18px; border-radius:999px; font-size:.88rem; box-shadow:var(--shadow); z-index:50; max-width:90vw; text-align:center;
+  }
+
+  /* ---- Setup ---- */
+  .setup-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;}
+  .slot{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-sm);
+    padding:12px; cursor:pointer; display:flex; flex-direction:column; gap:8px; text-align:left;
+  }
+  .slot:hover{border-color:var(--accent);}
+  .slot .num{font-family:var(--font-mono); font-size:.72rem; color:var(--muted);}
+  .slot .addr{font-weight:600; font-size:.9rem; line-height:1.3;}
+  .slot .status{font-size:.74rem; font-weight:600;}
+  .status.ok{color:var(--accent);}
+  .status.missing{color:var(--danger);}
+  .editor{display:flex; flex-direction:column; gap:14px;}
+  .upload-row{display:flex; align-items:center; gap:12px;}
+
+  /* ---- Present ---- */
+  .present-wrap{display:flex; flex-direction:column; gap:16px; align-items:center;}
+  .present-card{width:100%; max-width:560px; display:flex; flex-direction:column; gap:14px;}
+  .present-photo{aspect-ratio:4/3; border-radius:var(--radius); overflow:hidden; background:var(--surface-2); border:1px solid var(--line);}
+  .present-photo img{width:100%; height:100%; object-fit:cover; display:block;}
+  .present-photo.pad{padding:15%;}
+  .present-addr{font-size:clamp(1.5rem,5vw,2.1rem); font-weight:600;}
+  .present-desc{color:var(--ink-soft); font-size:1rem;}
+  .dots{display:flex; gap:6px; justify-content:center; flex-wrap:wrap;}
+  .dot{width:9px; height:9px; border-radius:999px; background:var(--line); border:none; cursor:pointer; padding:0;}
+  .dot.active{background:var(--accent); width:22px; border-radius:999px;}
+  .present-nav{display:flex; align-items:center; gap:14px; width:100%; max-width:560px; justify-content:space-between;}
+  .present-gallery{display:flex; gap:10px; flex-wrap:wrap;}
+  .present-gallery .present-photo{flex:1 1 200px; min-width:0;}
+  .chip.unknown{color:var(--muted); font-style:italic;}
+
+  /* ---- Map ---- */
+  .map-box{width:100%; aspect-ratio:27/25; border-radius:var(--radius); overflow:hidden; background:var(--gold-soft); border:1px solid var(--line);}
+  .map-svg{width:100%; height:100%; display:block; background:var(--gold-soft);}
+  .map-land{fill:var(--gold-soft);}
+  .map-water{fill:var(--map-water);}
+  .map-pin{fill:var(--accent); stroke:var(--surface); stroke-width:1.5;}
+  .map-pulse{fill:var(--accent); opacity:.3; animation:mapPulse 2.2s ease-out infinite;}
+  .map-label{font-family:var(--font-mono); font-size:9px; fill:var(--ink);}
+  .map-compass{font-family:var(--font-mono); font-size:9px; fill:var(--muted);}
+  @keyframes mapPulse{0%{r:5.5; opacity:.35;}100%{r:15; opacity:0;}}
+  @media (prefers-reduced-motion:reduce){ .map-pulse{animation:none; opacity:.12;} }
+
+  /* ---- PIN gate ---- */
+  .pin-boxes{display:flex; gap:8px;}
+  .pin-boxes input{
+    width:48px; height:56px; text-align:center; font-family:var(--font-mono); font-size:1.4rem;
+    border-radius:var(--radius-sm); border:1px solid var(--line); background:var(--surface-2); color:var(--ink);
+  }
+  .pin-display{font-family:var(--font-mono); font-size:1.6rem; font-weight:600; letter-spacing:.15em; color:var(--accent);}
+
+  /* ---- Play ---- */
+  .guess-row{display:flex; gap:12px; align-items:center;}
+  .guess-info{flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;}
+  .guess-info .addr{font-weight:600; font-size:.95rem;}
+  .guess-field{display:flex; align-items:center; gap:7px;}
+  .guess-field input{
+    width:108px; font-family:var(--font-mono); font-size:.95rem; padding:8px 9px;
+    border-radius:var(--radius-sm); border:1px solid var(--line); background:var(--surface-2); color:var(--ink);
+  }
+  .guess-field .unit{font-family:var(--font-mono); font-size:.78rem; color:var(--muted);}
+  .sticky-bar{
+    position:sticky; bottom:12px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:12px 16px; box-shadow:var(--shadow);
+  }
+  .sticky-bar .count{font-family:var(--font-mono); font-size:.85rem; color:var(--ink-soft);}
+  .banner{
+    display:flex; align-items:center; gap:12px; background:var(--gold-soft); border:1px solid var(--gold);
+    border-radius:var(--radius); padding:14px 16px;
+  }
+  .banner .msg{flex:1; font-weight:600;}
+
+  /* ---- Reveal ---- */
+  .winner-banner{
+    background:var(--gold-soft); border:1px solid var(--gold); border-radius:var(--radius); padding:20px;
+    display:flex; flex-direction:column; gap:4px; align-items:center; text-align:center;
+  }
+  .winner-banner .medal{font-size:2rem;}
+  .winner-banner .name{font-family:var(--font-display); font-size:1.5rem; font-weight:700;}
+  .winner-banner .sub{font-family:var(--font-mono); font-size:.85rem; color:var(--ink-soft);}
+  .table-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius-sm);}
+  table{width:100%; border-collapse:collapse; font-size:.9rem;}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap;}
+  th{font-family:var(--font-mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+  td.num, th.num{font-family:var(--font-mono); font-variant-numeric:tabular-nums; text-align:right;}
+  tr.me{background:var(--accent-soft);}
+  .rank-medal{font-size:1rem;}
+  details.prop-detail{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-sm); padding:0;}
+  details.prop-detail summary{
+    cursor:pointer; padding:12px 14px; font-weight:600; list-style:none; display:flex; align-items:center; gap:10px;
+  }
+  details.prop-detail summary::-webkit-details-marker{display:none;}
+  details.prop-detail summary::after{content:'▾'; margin-left:auto; color:var(--muted);}
+  details.prop-detail[open] summary::after{content:'▴';}
+  details.prop-detail .body{padding:0 14px 14px; display:flex; flex-direction:column; gap:10px;}
+  .closest{color:var(--accent); font-weight:700;}
+
+  @media (max-width:520px){
+    .present-nav .btn span.label{display:none;}
+    th,td{padding:8px 8px;}
+  }
+</style>
+
+<div id="app">
+  <div class="topbar" id="topbar" hidden>
+    <button class="icon-btn" id="btn-back" aria-label="Tillbaka">←</button>
+    <div class="tabs" id="host-tabs" hidden>
+      <button data-tab="setup">Bostäder</button>
+      <button data-tab="present">Presentera</button>
+      <button data-tab="reveal">Resultat</button>
+    </div>
+    <div class="topbar-title" id="topbar-title"></div>
+  </div>
+
+  <section class="view" data-view="home" id="view-home">
+    <div class="hero">
+      <div class="eyebrow">Fredagskvisset</div>
+      <h1>Kvmpriset</h1>
+      <p>Tio sålda bostäder. Ingen ser priset. Den som gissar kvadratmeterpriset närmast vinner &mdash; räknat som lägsta totala avvikelse över alla tio.</p>
+    </div>
+
+    <div class="home-section">
+      <div class="home-section-label">För quizvärden</div>
+      <div class="card-grid">
+        <button class="choice-card" data-nav="setup">
+          <span class="icon">🏗️</span>
+          <span class="title">Lägg till bostäder</span>
+          <span class="desc">Mata in adress, yta, bild och det sålda priset för alla tio objekt.</span>
+        </button>
+        <button class="choice-card" data-nav="present">
+          <span class="icon">📽️</span>
+          <span class="title">Presentera</span>
+          <span class="desc">Visa bostäderna en och en på storbild &mdash; utan pris.</span>
+        </button>
+        <button class="choice-card" data-nav="reveal">
+          <span class="icon">🏆</span>
+          <span class="title">Avslöja resultat</span>
+          <span class="desc">Räkna ut avvikelser och utse vinnaren.</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="home-section">
+      <div class="home-section-label">För dig som gissar</div>
+      <div class="card qr-card">
+        <canvas id="qr-canvas" width="220" height="220"></canvas>
+        <div class="qr-caption">Skanna för att gissa kvadratmeterpriset</div>
+        <a href="#play" id="qr-fallback-link" class="qr-fallback-link">Eller öppna gissningssidan direkt →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" data-view="setup" id="view-setup" hidden>
+    <div id="setup-root"></div>
+  </section>
+
+  <section class="view" data-view="present" id="view-present" hidden>
+    <div id="present-root"></div>
+  </section>
+
+  <section class="view" data-view="play" id="view-play" hidden>
+    <div id="play-root"></div>
+  </section>
+
+  <section class="view" data-view="reveal" id="view-reveal" hidden>
+    <div id="reveal-root"></div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script>
 (function(){
   "use strict";
 
-  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  var currentUid = null;
-  var authReady = (async function(){
-    var existing = await sb.auth.getSession();
-    if (existing.data.session){
-      currentUid = existing.data.session.user.id;
-      return currentUid;
-    }
-    var res = await sb.auth.signInAnonymously();
-    if (res.error){ console.error('auth error', res.error); return null; }
-    currentUid = res.data.user.id;
-    return currentUid;
-  })();
+  var PROPERTY_IDS = Array.from({length:10}, function(_,i){ return 'p'+(i+1); });
 
-  var PROPERTY_IDS = PROPERTIES.map(function(p){ return p.id; });
-  var PROPERTIES_BY_ID = {};
-  PROPERTIES.forEach(function(p){ PROPERTIES_BY_ID[p.id] = p; });
+  var db = null, assets = null;
+  var dbReady = false;
 
-  var state = { view: 'home', cameFromPlay: false, presentIndex: 0 };
+  var playerId = localStorage.getItem('kvm_playerId');
+  if (!playerId) {
+    playerId = 'g' + Math.random().toString(36).slice(2,10);
+    localStorage.setItem('kvm_playerId', playerId);
+  }
+
+  var state = {
+    view: 'home',
+    cameFromPlay: false,
+    presentIndex: 0,
+    setupEditing: null,
+    setupPendingImages: null
+  };
 
   function $(sel, root){ return (root||document).querySelector(sel); }
   function $all(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
@@ -47,10 +347,10 @@
       '<rect x="44" y="50" width="14" height="18" />'+
       '</svg>';
   }
-  function imgOrPlaceholder(src, cls, extraStyle){
+  function imgOrPlaceholder(imageAssetId, cls, extraStyle){
     var style = extraStyle ? ' style="'+extraStyle+'"' : '';
-    if (src){
-      return '<div class="'+cls+'"'+style+'><img src="'+esc(src)+'" alt="" loading="lazy"></div>';
+    if (imageAssetId){
+      return '<div class="'+cls+'"'+style+'><img src="/_blob/'+esc(imageAssetId)+'" alt="" loading="lazy"></div>';
     }
     return '<div class="'+cls+' pad"'+style+'>'+houseSvg()+'</div>';
   }
@@ -58,7 +358,6 @@
     var parts = String(address||'').split(',');
     return parts.length > 1 ? parts.slice(1).join(',').trim() : parts[0].trim();
   }
-
   // Real water bodies around Stockholm (lakes/bays), simplified from OpenStreetMap data
   // (source: Overpass API, natural=water and natural=bay features), so the map reads as
   // Stockholm via its actual shoreline pattern rather than an abstract shape.
@@ -100,12 +399,27 @@
     return String(Math.floor(1000 + Math.random() * 9000));
   }
   async function ensureStateDoc(){
-    var res = await sb.from('meta').select('*').eq('id','state').maybeSingle();
-    if (res.data) return res.data;
-    var initial = { id:'state', revealed:false, revealed_at:null, pin: generatePin() };
-    try { await sb.from('meta').insert(initial); } catch(e){}
+    if (!db) return { revealed:false, revealedAt:null, pin:null };
+    var snap = await db.doc('state/quiz').get();
+    if (snap.exists) return snap.data();
+    var initial = { revealed:false, revealedAt:null, pin: generatePin() };
+    try { await db.doc('state/quiz').set(initial); } catch(e){}
     return initial;
   }
+
+  // ---------- capability init ----------
+  var capsReady = (async function initCapabilities(){
+    try { db = window.claude ? await window.claude.use('db') : null; } catch(e){ db = null; }
+    try { assets = window.claude ? await window.claude.use('assets') : null; } catch(e){ assets = null; }
+    dbReady = !!db;
+    if (!dbReady){
+      var warn = document.createElement('div');
+      warn.className = 'toast';
+      warn.style.bottom = 'auto'; warn.style.top = '16px';
+      warn.textContent = 'Öppna den här sidan i Claude-appen eller på claude.ai för att spara och dela svar.';
+      document.body.appendChild(warn);
+    }
+  })();
 
   // ---------- kiosk mode (the QR-coded contestant link) ----------
   var kiosk = location.hash === '#play';
@@ -132,7 +446,7 @@
       topbar.hidden = true;
     } else {
       topbar.hidden = false;
-      var isHostView = (view === 'present' || (view === 'reveal' && !state.cameFromPlay));
+      var isHostView = (view === 'setup' || view === 'present' || (view === 'reveal' && !state.cameFromPlay));
       tabs.hidden = !isHostView;
       if (isHostView){
         $all('#host-tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === view); });
@@ -142,7 +456,7 @@
         title.textContent = titles[view] || '';
       }
     }
-    if (view === 'home') renderHostPanel();
+    if (view === 'setup') renderSetup();
     if (view === 'present') renderPresent();
     if (view === 'play') renderPlay();
     if (view === 'reveal') renderReveal();
@@ -166,14 +480,44 @@
     if (e.key === 'ArrowLeft') presentGo(-1);
   });
 
-  // ================= HOST PANEL (home screen) =================
-  async function renderHostPanel(){
-    var root = $('#host-panel');
-    root.innerHTML = '<p style="color:var(--muted);font-size:.85rem;">Laddar värdpanel…</p>';
-    await authReady;
+  // ================= SETUP =================
+  async function fetchAllProperties(){
+    var result = {};
+    if (!db) return result;
+    await Promise.all(PROPERTY_IDS.map(async function(id){
+      var snap = await db.doc('properties/'+id).get();
+      if (snap.exists) result[id] = snap.data();
+    }));
+    return result;
+  }
+  async function fetchAllAnswers(){
+    var result = {};
+    if (!db) return result;
+    await Promise.all(PROPERTY_IDS.map(async function(id){
+      var snap = await db.doc('answers/'+id).get();
+      if (snap.exists) result[id] = snap.data();
+    }));
+    return result;
+  }
+
+  async function renderSetup(){
+    var root = $('#setup-root');
+    root.innerHTML = '<p style="color:var(--muted)">Laddar bostäder…</p>';
+    await capsReady;
+    if (!db){ root.innerHTML = '<p>Databasen är inte tillgänglig i den här vyn.</p>'; return; }
+    var props = await fetchAllProperties();
+    var answers = await fetchAllAnswers();
+    state._setupProps = props; state._setupAnswers = answers;
+
+    if (state.setupEditing){
+      renderSetupEditor(props[state.setupEditing], answers[state.setupEditing]);
+      return;
+    }
+
     var quizState = await ensureStateDoc();
+    var doneCount = PROPERTY_IDS.filter(function(id){ return props[id] && answers[id]; }).length;
     var html = '';
-    html += '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">';
+    html += '<div class="card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">';
     html += '<div style="flex:1;min-width:180px;">';
     html += '<div style="font-size:.8rem;font-weight:600;color:var(--ink-soft);">PIN-kod för gissningsformuläret</div>';
     html += '<div class="pin-display">'+esc(quizState.pin||'----')+'</div>';
@@ -181,26 +525,212 @@
     html += '<div class="field" style="max-width:120px;"><input id="pin-input" maxlength="4" inputmode="numeric" placeholder="1234" value="'+esc(quizState.pin||'')+'"></div>';
     html += '<button class="btn ghost" id="pin-save">Spara PIN</button>';
     html += '</div>';
-    html += '<p style="font-size:.76rem;color:var(--muted);margin-top:10px;">Ditt ID (skicka till Claude en gång så låses värdåtkomsten till dig): <code>'+esc(currentUid||'—')+'</code></p>';
+
+    html += '<div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;">';
+    html += '<h2>Bostäder</h2>';
+    html += '<p style="color:var(--ink-soft)">Fyll i alla tio innan ni kör igång presentationen. Priset syns aldrig i presentationen &mdash; bara här under uppsättningen.</p>';
+    html += '<div class="progress-track"><div class="progress-fill" style="width:'+(doneCount/10*100)+'%"></div></div>';
+    html += '<div class="chip">'+doneCount+' av 10 klara</div>';
+    html += '</div>';
+    html += '<div class="setup-grid" style="margin-top:14px;">';
+    PROPERTY_IDS.forEach(function(id, i){
+      var p = props[id], a = answers[id];
+      var complete = p && a;
+      html += '<button class="slot" data-edit="'+id+'">';
+      html += '<span class="num">Bostad '+(i+1)+'</span>';
+      html += '<span class="addr">'+(p && p.address ? esc(p.address) : 'Ej ifylld')+'</span>';
+      html += '<span class="status '+(complete?'ok':'missing')+'">'+(complete?'✓ Klar':'Saknas')+'</span>';
+      html += '</button>';
+    });
+    html += '</div>';
     root.innerHTML = html;
+    $all('[data-edit]', root).forEach(function(btn){
+      btn.addEventListener('click', function(){
+        state.setupEditing = btn.dataset.edit;
+        renderSetup();
+      });
+    });
     $('#pin-save', root).addEventListener('click', async function(){
       var v = $('#pin-input', root).value.trim();
       if (!/^\d{4}$/.test(v)){ toast('PIN-koden måste vara exakt 4 siffror.'); return; }
       try {
-        var res = await sb.from('meta').update({ pin: v }).eq('id','state');
-        if (res.error) throw res.error;
+        await db.doc('state/quiz').update({ pin: v });
         toast('PIN-koden sparad!');
-        renderHostPanel();
+        renderSetup();
       } catch(err){
-        toast('Kunde inte spara PIN-koden. Har du klistrat in Firestore-reglerna med ditt ID?');
+        toast('Kunde inte spara PIN-koden.');
+      }
+    });
+  }
+
+  function renderSetupEditor(p, a){
+    p = p || {}; a = a || {};
+    var root = $('#setup-root');
+    var idx = PROPERTY_IDS.indexOf(state.setupEditing) + 1;
+    var pending = state.setupPendingImages || {};
+    var exteriorId = pending.exterior !== undefined ? pending.exterior : (p.exteriorImageAssetId || null);
+    var interiorId = pending.interior !== undefined ? pending.interior : (p.interiorImageAssetId || null);
+
+    var html = '';
+    html += '<div class="editor">';
+    html += '<div style="display:flex;align-items:center;gap:10px;">';
+    html += '<button class="icon-btn" id="editor-cancel" aria-label="Tillbaka till listan">←</button>';
+    html += '<h2 style="font-size:1.2rem;">Bostad '+idx+'</h2>';
+    html += '</div>';
+
+    html += '<div class="field-row">';
+    html += '<div class="upload-row" style="flex:1;min-width:160px;flex-direction:column;align-items:flex-start;gap:8px;">';
+    html += imgOrPlaceholder(exteriorId, 'thumb', 'width:100%;max-width:220px;');
+    html += '<label class="btn ghost" style="cursor:pointer;">📷 Utsidan<input type="file" accept="image/*" id="editor-file-ext" style="display:none;" '+(assets?'':'disabled')+'></label>';
+    html += '</div>';
+    html += '<div class="upload-row" style="flex:1;min-width:160px;flex-direction:column;align-items:flex-start;gap:8px;">';
+    html += imgOrPlaceholder(interiorId, 'thumb', 'width:100%;max-width:220px;');
+    html += '<label class="btn ghost" style="cursor:pointer;">📷 Insidan<input type="file" accept="image/*" id="editor-file-int" style="display:none;" '+(assets?'':'disabled')+'></label>';
+    html += '</div>';
+    html += '</div>';
+    if (!assets) html += '<span style="font-size:.78rem;color:var(--muted)">Bilduppladdning kräver redigeringsåtkomst till sidan.</span>';
+
+    html += '<div class="field"><label for="f-address">Adress</label><input id="f-address" value="'+esc(p.address||'')+'" placeholder="T.ex. Björkgatan 14"></div>';
+
+    html += '<div class="field-row">';
+    html += '<div class="field"><label for="f-area">Boarea (m²)</label><input id="f-area" type="number" min="0" value="'+esc(p.area||'')+'"></div>';
+    html += '<div class="field"><label for="f-rooms">Rum</label><input id="f-rooms" value="'+esc(p.rooms||'')+'" placeholder="T.ex. 3 rum, kök, balkong"></div>';
+    html += '<div class="field"><label for="f-year">Byggår (lämna tomt om okänt)</label><input id="f-year" type="number" value="'+esc(p.builtYear||'')+'"></div>';
+    html += '</div>';
+
+    html += '<div class="field-row">';
+    html += '<div class="field"><label for="f-lat">Latitud (för kartan)</label><input id="f-lat" type="number" step="any" value="'+esc(p.lat!=null?p.lat:'')+'"></div>';
+    html += '<div class="field"><label for="f-lng">Longitud (för kartan)</label><input id="f-lng" type="number" step="any" value="'+esc(p.lng!=null?p.lng:'')+'"></div>';
+    html += '</div>';
+
+    html += '<div class="field"><label for="f-type">Typ</label><input id="f-type" value="'+esc(p.type||'')+'" placeholder="T.ex. Bostadsrätt, lägenhet"></div>';
+    html += '<div class="field"><label for="f-desc">Kort beskrivning</label><textarea id="f-desc" placeholder="Ett par rader från annonsen">'+esc(p.description||'')+'</textarea></div>';
+    html += '<div class="field"><label for="f-solddate">Såld (t.ex. månad/år)</label><input id="f-solddate" value="'+esc(p.soldDate||'')+'"></div>';
+
+    html += '<div class="field-row">';
+    html += '<div class="field"><label for="f-price">Sålt pris (kr)</label><input id="f-price" type="number" min="0" value="'+esc(a.soldPrice||'')+'"></div>';
+    html += '<div class="field"><label for="f-persqm">Pris per m² (kr/m²)</label><input id="f-persqm" type="number" min="0" value="'+esc(a.pricePerSqm||'')+'"></div>';
+    html += '</div>';
+    html += '<p style="font-size:.78rem;color:var(--muted)">Pris/m² räknas ut automatiskt från sålt pris och boarea om du lämnar fältet tomt &mdash; du kan alltid justera det manuellt.</p>';
+
+    html += '<div class="btn-row">';
+    html += '<button class="btn primary" id="editor-save">Spara</button>';
+    html += '<button class="btn ghost" id="editor-cancel-2">Avbryt</button>';
+    html += '</div>';
+    html += '</div>';
+
+    root.innerHTML = html;
+
+    $('#editor-cancel', root).addEventListener('click', closeEditor);
+    $('#editor-cancel-2', root).addEventListener('click', closeEditor);
+    function closeEditor(){ state.setupEditing = null; state.setupPendingImages = null; renderSetup(); }
+
+    $('#f-area', root).addEventListener('input', maybeAutoPrice);
+    $('#f-price', root).addEventListener('input', maybeAutoPrice);
+    function maybeAutoPrice(){
+      var area = parseFloat($('#f-area', root).value);
+      var price = parseFloat($('#f-price', root).value);
+      var perSqmField = $('#f-persqm', root);
+      if (area > 0 && price > 0 && !perSqmField.dataset.touched){
+        perSqmField.value = Math.round(price/area);
+      }
+    }
+    $('#f-persqm', root).addEventListener('input', function(){ this.dataset.touched = '1'; });
+
+    function readFormIntoDocs(){
+      return {
+        prop: {
+          address: $('#f-address', root).value,
+          area: $('#f-area', root).value,
+          rooms: $('#f-rooms', root).value,
+          builtYear: $('#f-year', root).value,
+          lat: $('#f-lat', root).value,
+          lng: $('#f-lng', root).value,
+          type: $('#f-type', root).value,
+          description: $('#f-desc', root).value,
+          soldDate: $('#f-solddate', root).value
+        },
+        answer: {
+          soldPrice: $('#f-price', root).value,
+          pricePerSqm: $('#f-persqm', root).value
+        },
+        persqmTouched: !!$('#f-persqm', root).dataset.touched
+      };
+    }
+
+    if (assets){
+      $('#editor-file-ext', root).addEventListener('change', function(e){ handleUpload(e, 'exterior'); });
+      $('#editor-file-int', root).addEventListener('change', function(e){ handleUpload(e, 'interior'); });
+    }
+    async function handleUpload(e, slot){
+      var file = e.target.files[0];
+      if (!file) return;
+      var form = readFormIntoDocs();
+      try {
+        toast('Laddar upp bild…');
+        var res = await assets.upload(file);
+        state.setupPendingImages = Object.assign({}, state.setupPendingImages);
+        state.setupPendingImages[slot] = res.id;
+        renderSetupEditor(form.prop, form.answer);
+        if (form.persqmTouched) $('#f-persqm', root).dataset.touched = '1';
+      } catch(err){
+        toast('Kunde inte ladda upp bilden.');
+        renderSetupEditor(form.prop, form.answer);
+      }
+    }
+
+    $('#editor-save', root).addEventListener('click', async function(){
+      var address = $('#f-address', root).value.trim();
+      var area = parseFloat($('#f-area', root).value);
+      var soldPrice = parseFloat($('#f-price', root).value);
+      var pricePerSqm = parseFloat($('#f-persqm', root).value);
+      if (!address || !(area > 0) || !(soldPrice > 0) || !(pricePerSqm > 0)){
+        toast('Fyll i adress, boarea, sålt pris och pris/m² innan du sparar.');
+        return;
+      }
+      var latVal = parseFloat($('#f-lat', root).value);
+      var lngVal = parseFloat($('#f-lng', root).value);
+      var propDoc = {
+        address: address,
+        area: area,
+        rooms: $('#f-rooms', root).value.trim(),
+        builtYear: parseInt($('#f-year', root).value) || null,
+        lat: isNaN(latVal) ? null : latVal,
+        lng: isNaN(lngVal) ? null : lngVal,
+        type: $('#f-type', root).value.trim(),
+        description: $('#f-desc', root).value.trim(),
+        soldDate: $('#f-solddate', root).value.trim(),
+        exteriorImageAssetId: exteriorId || null,
+        interiorImageAssetId: interiorId || null,
+        order: idx
+      };
+      var answerDoc = { soldPrice: soldPrice, pricePerSqm: pricePerSqm };
+      try {
+        await db.doc('properties/'+state.setupEditing).set(propDoc);
+        await db.doc('answers/'+state.setupEditing).set(answerDoc);
+        toast('Sparat!');
+        state.setupPendingImages = null;
+        state.setupEditing = null;
+        renderSetup();
+      } catch(err){
+        toast('Kunde inte spara. Har du redigeringsåtkomst till sidan?');
       }
     });
   }
 
   // ================= PRESENT =================
-  var presentList = PROPERTIES;
-  function renderPresent(){
+  var presentList = [];
+  async function renderPresent(){
     var root = $('#present-root');
+    root.innerHTML = '<p style="color:var(--muted)">Laddar bostäder…</p>';
+    await capsReady;
+    if (!db){ root.innerHTML = '<p>Databasen är inte tillgänglig i den här vyn.</p>'; return; }
+    var props = await fetchAllProperties();
+    presentList = PROPERTY_IDS.filter(function(id){ return props[id]; }).map(function(id){ return Object.assign({id:id}, props[id]); });
+    if (presentList.length === 0){
+      root.innerHTML = '<div class="card"><p>Inga bostäder tillagda ännu. Gå till <strong>Bostäder</strong> och lägg till alla tio.</p></div>';
+      return;
+    }
     if (state.presentIndex >= presentList.length) state.presentIndex = 0;
     drawPresent();
   }
@@ -210,8 +740,8 @@
     var html = '<div class="present-wrap">';
     html += '<div class="present-card">';
     html += '<div class="present-gallery">';
-    html += imgOrPlaceholder(p.imgOutside, 'present-photo');
-    html += imgOrPlaceholder(p.imgInside, 'present-photo');
+    html += imgOrPlaceholder(p.exteriorImageAssetId, 'present-photo');
+    html += imgOrPlaceholder(p.interiorImageAssetId, 'present-photo');
     html += '</div>';
     html += '<div>';
     html += '<div class="present-addr">'+esc(p.address)+'</div>';
@@ -220,6 +750,7 @@
     if (p.rooms) html += '<span class="chip">'+esc(p.rooms)+'</span>';
     html += p.builtYear ? '<span class="chip">Byggd '+p.builtYear+'</span>' : '<span class="chip unknown">Byggår okänt</span>';
     if (p.type) html += '<span class="chip">'+esc(p.type)+'</span>';
+    if (p.soldDate) html += '<span class="chip">Såld '+esc(p.soldDate)+'</span>';
     html += '</div>';
     html += '</div>';
     html += '<div class="map-box">'+generateMapSvg(p)+'</div>';
@@ -254,15 +785,17 @@
   }
 
   // ================= PLAY =================
+  var playProps = null;
   var revealUnsub = null;
 
   async function renderPlay(){
     var root = $('#play-root');
     root.innerHTML = '<p style="color:var(--muted)">Laddar…</p>';
-    await authReady;
-    if (!currentUid){ root.innerHTML = '<p>Kunde inte ansluta. Ladda om sidan.</p>'; return; }
+    await capsReady;
+    if (!db){ root.innerHTML = '<p>Databasen är inte tillgänglig i den här vyn.</p>'; return; }
 
     if (localStorage.getItem('kvm_pinOk') !== '1'){
+      root.innerHTML = '<p style="color:var(--muted)">Laddar…</p>';
       var quizState = await ensureStateDoc();
       if (quizState.pin){
         root.innerHTML =
@@ -309,10 +842,20 @@
       return;
     }
 
+    root.innerHTML = '<p style="color:var(--muted)">Laddar bostäder…</p>';
+    if (!db){ root.innerHTML = '<p>Databasen är inte tillgänglig i den här vyn.</p>'; return; }
+
+    var props = await fetchAllProperties();
+    playProps = PROPERTY_IDS.filter(function(id){ return props[id]; }).map(function(id){ return Object.assign({id:id}, props[id]); });
+    if (playProps.length === 0){
+      root.innerHTML = '<div class="card"><p>Värden har inte lagt till några bostäder ännu. Kolla igen om en liten stund.</p></div>';
+      return;
+    }
+
     var existing = {};
     try {
-      var gres = await sb.from('guesses').select('guesses').eq('id', currentUid).maybeSingle();
-      if (gres.data) existing = gres.data.guesses || {};
+      var gsnap = await db.doc('guesses/'+playerId).get();
+      if (gsnap.exists) existing = gsnap.data().guesses || {};
     } catch(e){}
 
     var html = '';
@@ -323,9 +866,9 @@
     html += '<p style="color:var(--ink-soft)">Gissa priset per kvadratmeter för varje bostad. Du kan ändra dina svar tills kvizvärden avslöjar resultatet.</p>';
     html += '<div id="reveal-banner-slot"></div>';
     html += '<div style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">';
-    PROPERTIES.forEach(function(p){
+    playProps.forEach(function(p){
       html += '<div class="card guess-row">';
-      html += imgOrPlaceholder(p.imgOutside, 'thumb', 'width:72px;height:54px;');
+      html += imgOrPlaceholder(p.exteriorImageAssetId || p.interiorImageAssetId, 'thumb', 'width:72px;height:54px;');
       html += '<div class="guess-info">';
       html += '<span class="addr">'+esc(p.address)+'</span>';
       html += '<span class="chip" style="width:fit-content;">'+ (p.area?fmtInt(p.area)+' m²':'') +'</span>';
@@ -346,14 +889,14 @@
     });
 
     function updateCount(){
-      var filled = PROPERTIES.filter(function(p){
+      var filled = playProps.filter(function(p){
         var el = $('#guess-'+p.id, root);
         return el && parseFloat(el.value) > 0;
       }).length;
-      $('#guess-count', root).textContent = filled + '/' + PROPERTIES.length + ' ifyllda';
-      $('#submit-guesses', root).disabled = filled < PROPERTIES.length;
+      $('#guess-count', root).textContent = filled + '/' + playProps.length + ' ifyllda';
+      $('#submit-guesses', root).disabled = filled < playProps.length;
     }
-    PROPERTIES.forEach(function(p){
+    playProps.forEach(function(p){
       $('#guess-'+p.id, root).addEventListener('input', updateCount);
     });
     updateCount();
@@ -361,69 +904,63 @@
     $('#submit-guesses', root).addEventListener('click', async function(){
       var guesses = {};
       var ok = true;
-      PROPERTIES.forEach(function(p){
+      playProps.forEach(function(p){
         var v = parseFloat($('#guess-'+p.id, root).value);
         if (!(v > 0)) ok = false;
         guesses[p.id] = v;
       });
       if (!ok){ toast('Fyll i alla tio innan du skickar in.'); return; }
       try {
-        var res = await sb.from('guesses').upsert({
-          id: currentUid,
+        await db.doc('guesses/'+playerId).set({
           name: name,
           guesses: guesses,
-          submitted_at: new Date().toISOString()
+          submittedAt: new Date().toISOString()
         });
-        if (res.error) throw res.error;
         toast('Inskickat! Lycka till 🎯');
       } catch(err){
         toast('Kunde inte skicka in svaret just nu, försök igen.');
       }
     });
 
-    if (revealUnsub) { clearInterval(revealUnsub); revealUnsub = null; }
-    async function checkRevealed(){
-      var snap = await sb.from('meta').select('revealed').eq('id','state').maybeSingle();
-      var revealed = snap.data && snap.data.revealed;
+    // subscribe to reveal state (lock + banner), lightweight, no full re-render
+    if (revealUnsub) { revealUnsub(); revealUnsub = null; }
+    revealUnsub = db.doc('state/quiz').onSnapshot(function(snap){
+      var revealed = snap.exists && snap.data().revealed;
       var slot = $('#reveal-banner-slot', root);
       if (!slot) return;
       if (revealed){
         slot.innerHTML = '<div class="banner"><span style="font-size:1.4rem;">🏆</span><span class="msg">Resultatet är klart!</span><button class="btn primary" id="go-reveal">Visa resultat</button></div>';
         $('#go-reveal', slot).addEventListener('click', function(){ setView('reveal', {cameFromPlay:true}); });
-        PROPERTIES.forEach(function(p){ var el = $('#guess-'+p.id, root); if (el) el.disabled = true; });
+        playProps.forEach(function(p){ var el = $('#guess-'+p.id, root); if (el) el.disabled = true; });
         var bar = $('.sticky-bar', root); if (bar) bar.hidden = true;
       } else {
         slot.innerHTML = '';
       }
-    }
-    checkRevealed();
-    revealUnsub = setInterval(checkRevealed, 4000);
+    });
   }
 
   // ================= REVEAL =================
   async function computeAndReveal(){
-    await authReady;
-    var answers = {};
+    if (!db) return null;
+    var properties = await fetchAllProperties();
+    var answers;
     try {
-      var ares = await sb.from('answers').select('*');
-      if (ares.data){
-        ares.data.forEach(function(row){ answers[row.id] = row; });
-      }
-    } catch(e){}
-    var missingAnswers = PROPERTY_IDS.filter(function(id){ return !answers[id]; });
+      answers = await fetchAllAnswers();
+    } catch(e){ answers = {}; }
+    var missingAnswers = PROPERTY_IDS.filter(function(id){ return properties[id] && !answers[id]; });
     if (missingAnswers.length > 0){
-      toast('Du saknar behörighet att avslöja resultatet, eller så saknas facit i databasen.');
+      toast('Du saknar behörighet att avslöja resultatet. Be quizvärden göra det.');
       return null;
     }
-    var gres = await sb.from('guesses').select('*');
-    var players = gres.data || [];
+    var guessesSnap = await db.collection('guesses').get();
+    var players = guessesSnap.docs.map(function(d){ return d.data(); });
 
     var entries = players.map(function(pl){
       var total = 0, perProperty = {}, complete = true;
       PROPERTY_IDS.forEach(function(id){
-        if (!answers[id]) return;
+        if (!properties[id] || !answers[id]) return;
         var guess = pl.guesses ? pl.guesses[id] : undefined;
-        var actual = answers[id].price_per_sqm;
+        var actual = answers[id].pricePerSqm;
         if (guess == null){ complete = false; return; }
         var diff = Math.abs(guess - actual);
         perProperty[id] = { guess: guess, diff: diff };
@@ -436,25 +973,25 @@
       return a.totalDiff - b.totalDiff;
     });
 
-    await sb.from('leaderboard').upsert({
-      id: 'results',
-      entries: entries,
-      answers_revealed: answers,
-      computed_at: new Date().toISOString()
-    });
+    await Promise.all(PROPERTY_IDS.map(function(id){
+      if (!answers[id]) return Promise.resolve();
+      return db.doc('revealed_answers/'+id).set(answers[id]);
+    }));
+    await db.doc('leaderboard/results').set({ entries: entries, computedAt: new Date().toISOString() });
     await ensureStateDoc();
-    await sb.from('meta').update({ revealed: true, revealed_at: new Date().toISOString() }).eq('id','state');
+    await db.doc('state/quiz').update({ revealed: true, revealedAt: new Date().toISOString() });
 
-    return { entries: entries, answers: answers };
+    return { entries: entries, properties: properties, answers: answers };
   }
 
   async function renderReveal(){
     var root = $('#reveal-root');
     root.innerHTML = '<p style="color:var(--muted)">Laddar resultat…</p>';
-    await authReady;
+    await capsReady;
+    if (!db){ root.innerHTML = '<p>Databasen är inte tillgänglig i den här vyn.</p>'; return; }
 
-    var stateRes = await sb.from('meta').select('revealed').eq('id','state').maybeSingle();
-    var revealed = stateRes.data && stateRes.data.revealed;
+    var stateSnap = await db.doc('state/quiz').get();
+    var revealed = stateSnap.exists && stateSnap.data().revealed;
 
     if (!revealed){
       if (state.cameFromPlay){
@@ -469,18 +1006,23 @@
         root.innerHTML = '<p style="color:var(--muted)">Räknar ut resultatet…</p>';
         var result = await computeAndReveal();
         if (!result){ renderReveal(); return; }
-        drawReveal(result.entries, result.answers);
+        drawReveal(result.entries, result.properties, result.answers);
       });
       return;
     }
 
-    var lbRes = await sb.from('leaderboard').select('*').eq('id','results').maybeSingle();
-    var entries = lbRes.data ? lbRes.data.entries : [];
-    var answers = lbRes.data ? (lbRes.data.answers_revealed || {}) : {};
-    drawReveal(entries, answers);
+    var properties = await fetchAllProperties();
+    var lbSnap = await db.doc('leaderboard/results').get();
+    var entries = lbSnap.exists ? lbSnap.data().entries : [];
+    var revAnswers = {};
+    await Promise.all(PROPERTY_IDS.map(async function(id){
+      var s = await db.doc('revealed_answers/'+id).get();
+      if (s.exists) revAnswers[id] = s.data();
+    }));
+    drawReveal(entries, properties, revAnswers);
   }
 
-  function drawReveal(entries, answers){
+  function drawReveal(entries, properties, answers){
     var root = $('#reveal-root');
     var medals = ['🥇','🥈','🥉'];
     var html = '';
@@ -509,7 +1051,7 @@
     html += '<h2 style="margin-top:6px;">Bostad för bostad</h2>';
     html += '<div style="display:flex;flex-direction:column;gap:8px;">';
     PROPERTY_IDS.forEach(function(id, i){
-      var p = PROPERTIES_BY_ID[id];
+      var p = properties[id];
       var a = answers[id];
       if (!p || !a) return;
       var rows = entries.map(function(e){
@@ -517,9 +1059,9 @@
         return { name: e.name, guess: pp ? pp.guess : undefined, diff: pp ? pp.diff : undefined };
       }).filter(function(r){ return r.diff != null; }).sort(function(x,y){ return x.diff - y.diff; });
       html += '<details class="prop-detail">';
-      html += '<summary><span class="chip">'+(i+1)+'</span> '+esc(p.address)+' <span class="chip" style="margin-left:auto;">'+fmtKvm(a.price_per_sqm)+'</span></summary>';
+      html += '<summary><span class="chip">'+(i+1)+'</span> '+esc(p.address)+' <span class="chip" style="margin-left:auto;">'+fmtKvm(a.pricePerSqm)+'</span></summary>';
       html += '<div class="body">';
-      html += '<p style="color:var(--ink-soft);font-size:.9rem;">Sålt för '+fmtInt(a.sold_price)+' kr'+(p.area?(' &middot; '+fmtInt(p.area)+' m²'):'')+'</p>';
+      html += '<p style="color:var(--ink-soft);font-size:.9rem;">Sålt för '+fmtInt(a.soldPrice)+' kr'+(p.area?(' &middot; '+fmtInt(p.area)+' m²'):'')+'</p>';
       if (rows.length){
         html += '<div class="table-wrap"><table><thead><tr><th>Namn</th><th class="num">Gissning</th><th class="num">Avvikelse</th></tr></thead><tbody>';
         rows.forEach(function(r, ri){
@@ -537,3 +1079,4 @@
   // init
   setView(kiosk ? 'play' : 'home');
 })();
+</script>
