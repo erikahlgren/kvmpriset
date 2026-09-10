@@ -212,7 +212,7 @@
 </head>
 <body>
 <div id="app">
-  <div class="topbar" id="topbar" hidden>
+  <div class="topbar" id="topbar">
     <button class="icon-btn" id="btn-back" aria-label="Tillbaka">←</button>
     <div class="tabs" id="host-tabs">
       <button data-tab="present">Presentera</button>
@@ -231,22 +231,8 @@
       </ul>
     </div>
 
-    <div class="home-section">
-      <div class="card" id="host-panel" style="display:flex;flex-direction:column;gap:12px;">
-        <p style="color:var(--muted);font-size:.85rem;">Laddar värdpanel…</p>
-      </div>
-      <div class="card-grid">
-        <button class="choice-card" data-nav="present">
-          <span class="icon">📽️</span>
-          <span class="title">Presentera</span>
-          <span class="desc">Visa bostäderna en och en på storbild &mdash; utan pris.</span>
-        </button>
-        <button class="choice-card" data-nav="reveal">
-          <span class="icon">🏆</span>
-          <span class="title">Avslöja resultat</span>
-          <span class="desc">Räkna ut avvikelser och utse vinnaren.</span>
-        </button>
-      </div>
+    <div class="card" id="host-panel" style="display:flex;flex-direction:column;gap:12px;">
+      <p style="color:var(--muted);font-size:.85rem;">Laddar värdpanel…</p>
     </div>
 
     <div class="card qr-card">

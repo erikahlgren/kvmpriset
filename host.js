@@ -54,13 +54,8 @@
     opts = opts || {};
     state.view = view;
     $all('.view').forEach(function(el){ el.hidden = el.dataset.view !== view; });
-    var topbar = $('#topbar');
-    if (view === 'home'){
-      topbar.hidden = true;
-    } else {
-      topbar.hidden = false;
-      $all('#host-tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === view); });
-    }
+    $('#btn-back').hidden = (view === 'home');
+    $all('#host-tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === view); });
     if (view === 'home') renderHostPanel();
     if (view === 'present') renderPresent();
     if (view === 'reveal') renderReveal();
