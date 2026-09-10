@@ -10,6 +10,13 @@
   var lastKnownHostIndex = null;
   var myName = ''; // intentionally in-memory only: never persisted client-side, re-entered every visit
 
+  // Some mobile browsers restore this page from bfcache (back/forward cache) on
+  // what looks like a reload, which would resurrect the in-memory PIN/name state
+  // above instead of re-prompting. Force a real reload in that case.
+  window.addEventListener('pageshow', function(e){
+    if (e.persisted) location.reload();
+  });
+
   async function render(){
     var root = $('#play-root');
     root.innerHTML = '<p style="color:var(--muted)">Laddar…</p>';
@@ -96,13 +103,13 @@
     }
 
     if (metaPollTimer) clearInterval(metaPollTimer);
-    metaPollTimer = setInterval(pollMeta, 4000);
+    metaPollTimer = setInterval(pollMeta, 1500);
   }
 
   function renderWaiting(){
     var slot = $('#question-slot');
     if (!slot) return;
-    slot.innerHTML = '<div class="card" style="text-align:center;color:var(--ink-soft);">Väntar på att quizvärden visar en bostad…</div>';
+    slot.innerHTML = '<div class="card" style="text-align:center;color:var(--ink-soft);">Vi börjar strax</div>';
   }
 
   function renderQuestionShell(name){
@@ -144,7 +151,7 @@
     html += '</div>';
     html += '</div>';
 
-    html += '<div class="dots" style="margin-top:14px;">';
+    html += '<div class="dots">';
     PROPERTIES.forEach(function(_, i){
       html += '<button class="dot '+(i===myIndex?'active':'')+'" data-dot="'+i+'" aria-label="Bostad '+(i+1)+'"></button>';
     });
@@ -198,6 +205,7 @@
   }
 
   async function flushSave(){
+    if (!myName) return; // never write a row (e.g. re-creating one after a host reset) without a real name
     var complete = PROPERTY_IDS.every(function(id){ return myGuesses[id] > 0; });
     try {
       await sb.from('guesses').upsert({
