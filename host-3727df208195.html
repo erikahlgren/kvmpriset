@@ -87,8 +87,6 @@
   .qr-card{display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; padding:22px;}
   .qr-card canvas{border-radius:var(--radius-sm); max-width:100%; height:auto;}
   .qr-caption{font-weight:600; font-size:.95rem;}
-  .qr-fallback-link{color:var(--accent); font-size:.82rem; text-decoration:none;}
-  .qr-fallback-link:hover{text-decoration:underline;}
 
   /* ---- generic ---- */
   .btn{
@@ -251,7 +249,6 @@
       <div class="card qr-card">
         <canvas id="qr-canvas" width="220" height="220"></canvas>
         <div class="qr-caption">Skanna för att gissa kvadratmeterpriset</div>
-        <a href="play.html" id="qr-fallback-link" class="qr-fallback-link">Eller öppna gissningssidan direkt →</a>
       </div>
     </div>
   </section>
