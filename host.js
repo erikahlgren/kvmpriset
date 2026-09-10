@@ -151,7 +151,9 @@
   function drawPresent(){
     var root = $('#present-root');
     var p = presentList[state.presentIndex];
-    sb.from('meta').update({ present_index: state.presentIndex }).eq('id','state').then(function(){});
+    sb.from('meta').update({ present_index: state.presentIndex }).eq('id','state').then(function(res){
+      if (res.error) console.error('failed to sync present_index', res.error);
+    });
     var html = '<div class="present-wrap">';
     html += '<div class="present-card">';
     html += '<div class="present-info-text">';
