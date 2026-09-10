@@ -242,7 +242,9 @@
         var result = await computeAndReveal();
         if (!result){ renderReveal(); return; }
         drawReveal('#reveal-root', result.entries, result.answers);
+        appendResetControls();
       });
+      appendResetControls();
       return;
     }
 
@@ -250,6 +252,45 @@
     var entries = lbRes.data ? lbRes.data.entries : [];
     var answers = lbRes.data ? (lbRes.data.answers_revealed || {}) : {};
     drawReveal('#reveal-root', entries, answers);
+    appendResetControls();
+  }
+
+  function appendResetControls(){
+    var root = $('#reveal-root');
+    var wrap = document.createElement('div');
+    wrap.style.marginTop = '20px';
+    wrap.innerHTML =
+      '<button class="btn ghost" id="reset-step1" style="color:var(--danger);border-color:var(--danger);">Nollställ gissningar &amp; resultat</button>'+
+      '<div id="reset-step2" hidden style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'+
+        '<span style="font-size:.85rem;color:var(--danger);font-weight:600;">Radera alla gissningar och resultat permanent?</span>'+
+        '<button class="btn" id="reset-cancel">Avbryt</button>'+
+        '<button class="btn primary" id="reset-confirm" style="background:var(--danger);border-color:var(--danger);">Ja, radera allt</button>'+
+      '</div>';
+    root.appendChild(wrap);
+    $('#reset-step1', wrap).addEventListener('click', function(){
+      $('#reset-step1', wrap).hidden = true;
+      $('#reset-step2', wrap).hidden = false;
+    });
+    $('#reset-cancel', wrap).addEventListener('click', function(){
+      $('#reset-step2', wrap).hidden = true;
+      $('#reset-step1', wrap).hidden = false;
+    });
+    $('#reset-confirm', wrap).addEventListener('click', async function(){
+      $('#reset-confirm', wrap).disabled = true;
+      try {
+        var r1 = await sb.from('guesses').delete().not('id','is',null);
+        if (r1.error) throw r1.error;
+        var r2 = await sb.from('leaderboard').delete().not('id','is',null);
+        if (r2.error) throw r2.error;
+        var r3 = await sb.from('meta').update({ revealed:false, revealed_at:null }).eq('id','state');
+        if (r3.error) throw r3.error;
+        toast('Gissningar och resultat nollställda.');
+        renderReveal();
+      } catch(err){
+        toast('Kunde inte nollställa. Är du inloggad som värd?');
+        $('#reset-confirm', wrap).disabled = false;
+      }
+    });
   }
 
   // ================= LOGIN GATE =================
