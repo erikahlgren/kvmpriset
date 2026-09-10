@@ -83,7 +83,7 @@
   });
 
   // ---------- QR code to the separate contestant page ----------
-  function playLink(){ return location.href.replace(/index\.html$/, '').split('#')[0] + 'play.html'; }
+  function playLink(){ return location.href.split('#')[0].replace(/[^\/]*$/, '') + 'play.html'; }
   try {
     if (window.QRious) {
       new QRious({ element: $('#qr-canvas'), value: playLink(), size: 220, level: 'M' });

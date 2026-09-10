@@ -1,4 +1,4 @@
-// Shared by both host.js (index.html) and play.js (play.html).
+// Shared by both host.js (the host-only page) and play.js (play.html).
 // Deliberately does NOT include map generation, the present slideshow, the
 // host panel, or computeAndReveal — those stay host-only so the contestant
 // page never even downloads that code.
