@@ -78,11 +78,11 @@
     var res = await sb.from('guesses').select('name').order('submitted_at', { ascending: true });
     var names = (res.data || []).map(function(r){ return r.name; });
     if (!names.length){
-      el.innerHTML = '<p style="color:var(--muted);font-size:.85rem;">Ingen har gissat än.</p>';
+      el.innerHTML = '';
       return;
     }
     el.innerHTML =
-      '<div style="font-size:.8rem;font-weight:600;color:var(--ink-soft);margin-bottom:6px;">'+names.length+' har gissat</div>'+
+      '<div style="font-size:.8rem;font-weight:600;color:var(--ink-soft);margin-bottom:6px;">Deltagare:</div>'+
       '<div class="chip-row">' + names.map(function(n){ return '<span class="chip">'+esc(n)+'</span>'; }).join('') + '</div>';
   }
 
