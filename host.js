@@ -165,6 +165,9 @@
     html += '<div class="present-gallery">';
     html += imgOrPlaceholder(p.imgOutside, 'present-photo');
     html += imgOrPlaceholder(p.imgInside, 'present-photo');
+    html += '</div>';
+    html += '<div class="map-section">';
+    html += '<div class="map-label">📍 Läge</div>';
     html += '<div class="map-box">'+generateMapSvg(p)+'</div>';
     html += '</div>';
     html += '</div>';
